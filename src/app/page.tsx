@@ -645,10 +645,7 @@ export default function Home() {
                 <a
                   key={label}
                   href={href}
-                  className="transition-colors"
-                  style={{ color: "var(--text-3)" }}
-                  onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "var(--text)")}
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-3)")}
+                  className="footer-link"
                 >
                   {label}
                 </a>

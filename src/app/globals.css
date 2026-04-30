@@ -257,6 +257,13 @@ body {
   white-space: nowrap;
 }
 
+/* ── Footer link hover (CSS-only, safe in Server Components) ─ */
+.footer-link {
+  color: var(--text-3);
+  transition: color 200ms ease;
+}
+.footer-link:hover { color: var(--text); }
+
 /* ── Horizontal gradient divider ─────────────────── */
 .h-divider {
   height: 1px;
