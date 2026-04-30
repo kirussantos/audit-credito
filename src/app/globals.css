@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════
-   AuditCrédito — Design System
-   Style: Trust & Authority + Conversion-Optimized
-   Pattern: Banking / Legal Fintech
-   Typography: IBM Plex Sans (financial trust)
+   AuditCrédito — Design System v2
+   Style: Dark Aurora Premium + Glassmorphism + Trust
+   Pattern: Fintech / Legal / High-Conversion
+   Typography: IBM Plex Sans
 ═══════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Brand ── */
+  /* ── Brand (light pages) ── */
   --navy:          #0D1B2A;
   --navy-mid:      #1E3A5F;
   --navy-soft:     #2D5A8E;
   --blue:          #2563EB;
   --blue-light:    #EFF6FF;
 
-  /* ── Action ── */
+  /* ── Action (light pages) ── */
   --cta:           #16A34A;
   --cta-dark:      #15803D;
   --cta-glow:      rgba(22, 163, 74, 0.35);
@@ -31,21 +31,41 @@
   --success-bg:    #F0FDF4;
   --success-bdr:   #BBF7D0;
 
-  /* ── Surfaces ── */
+  /* ── Surfaces (light pages) ── */
   --bg:            #F8FAFC;
   --surface:       #FFFFFF;
   --surface-2:     #F1F5F9;
   --surface-3:     #EFF6FF;
 
-  /* ── Text ── */
+  /* ── Text (light pages) ── */
   --text:          #0F172A;
   --text-2:        #334155;
   --text-3:        #64748B;
   --text-4:        #94A3B8;
 
-  /* ── Borders ── */
+  /* ── Borders (light pages) ── */
   --bdr:           #E2E8F0;
   --bdr-2:         #CBD5E1;
+
+  /* ══ Dark Premium Theme (homepage) ══ */
+  --dp-bg:         #060D1A;
+  --dp-bg-2:       #080F20;
+  --dp-surface:    rgba(255,255,255,0.035);
+  --dp-surface-hv: rgba(255,255,255,0.065);
+  --dp-border:     rgba(255,255,255,0.075);
+  --dp-border-hv:  rgba(255,255,255,0.18);
+  --dp-text:       #F1F5F9;
+  --dp-text-2:     rgba(241,245,249,0.65);
+  --dp-text-3:     rgba(241,245,249,0.38);
+
+  /* ── Neon accents ── */
+  --neon:          #00D46A;
+  --neon-dim:      rgba(0, 212, 106, 0.15);
+  --neon-glow:     rgba(0, 212, 106, 0.32);
+  --neon-glow-lg:  rgba(0, 212, 106, 0.18);
+  --neon-blue:     #4B8EFF;
+  --neon-blue-dim: rgba(75,142,255,0.12);
+  --neon-purple:   #A855F7;
 }
 
 @theme inline {
@@ -64,13 +84,13 @@
   --color-text-muted:     #64748B;
   --color-border:         #E2E8F0;
   --color-border-2:       #CBD5E1;
+  --color-neon:           #00D46A;
+  --color-dp-bg:          #060D1A;
 }
 
 /* ── Base ──────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-
 html { scroll-behavior: smooth; }
-
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -80,7 +100,310 @@ body {
   line-height: 1.65;
 }
 
-/* ── Animations ─────────────────────────────────────── */
+/* ════════════════════════════════════════════════════
+   DARK PREMIUM UTILITIES
+════════════════════════════════════════════════════ */
+
+/* ── Glass card ──────────────────────────────────── */
+.glass-card {
+  background: var(--dp-surface);
+  border: 1px solid var(--dp-border);
+  border-radius: 1.125rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
+}
+.glass-card:hover {
+  background: var(--dp-surface-hv);
+  border-color: var(--dp-border-hv);
+  transform: translateY(-2px);
+}
+
+/* ── Glass card — neon border on hover ───────────── */
+.glass-card-neon:hover {
+  border-color: rgba(0,212,106,0.35);
+  box-shadow: 0 0 24px rgba(0,212,106,0.08);
+}
+
+/* ── Neon CTA button ─────────────────────────────── */
+.btn-neon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--neon);
+  color: #022B14;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  padding: 0.9375rem 2rem;
+  border-radius: 0.875rem;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: box-shadow 200ms ease, transform 150ms ease, filter 150ms ease;
+  box-shadow: 0 0 28px var(--neon-glow), 0 4px 16px rgba(0,0,0,0.3);
+}
+.btn-neon:hover {
+  box-shadow: 0 0 48px var(--neon-glow), 0 0 90px var(--neon-glow-lg), 0 4px 20px rgba(0,0,0,0.35);
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+.btn-neon:active { transform: translateY(0); }
+.btn-neon-pulse {
+  animation: neonPulse 2.4s ease-in-out infinite;
+}
+
+/* ── Ghost button (dark bg) ─────────────────────── */
+.btn-dark-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.06);
+  color: rgba(241,245,249,0.82);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.9375rem 2rem;
+  border-radius: 0.875rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+.btn-dark-ghost:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+/* ── Section label pill ─────────────────────────── */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neon);
+  background: var(--neon-dim);
+  border: 1px solid rgba(0,212,106,0.25);
+  padding: 0.3rem 0.8rem;
+  border-radius: 9999px;
+}
+.section-label-blue {
+  color: var(--neon-blue);
+  background: var(--neon-blue-dim);
+  border-color: rgba(75,142,255,0.25);
+}
+.section-label-red {
+  color: #FC5C5C;
+  background: rgba(252,92,92,0.1);
+  border-color: rgba(252,92,92,0.25);
+}
+
+/* ── Gradient text ───────────────────────────────── */
+.gradient-text-neon {
+  background: linear-gradient(100deg, #00D46A 0%, #00C4C8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-white {
+  background: linear-gradient(135deg, #FFFFFF 0%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-blue {
+  background: linear-gradient(100deg, #4B8EFF 0%, #A855F7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Neon number badge ───────────────────────────── */
+.neon-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,212,106,0.45);
+  color: var(--neon);
+  font-weight: 800;
+  font-size: 0.8rem;
+  background: rgba(0,212,106,0.07);
+  flex-shrink: 0;
+}
+
+/* ── Dark alert variants ─────────────────────────── */
+.alert-dk-red {
+  background: rgba(220,38,38,0.07);
+  border: 1px solid rgba(220,38,38,0.22);
+  border-radius: 0.875rem;
+}
+.alert-dk-amber {
+  background: rgba(217,119,6,0.07);
+  border: 1px solid rgba(217,119,6,0.22);
+  border-radius: 0.875rem;
+}
+.alert-dk-green {
+  background: rgba(0,212,106,0.07);
+  border: 1px solid rgba(0,212,106,0.22);
+  border-radius: 0.875rem;
+}
+
+/* ── Dividers ────────────────────────────────────── */
+.h-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--bdr) 20%, var(--bdr) 80%, transparent 100%);
+}
+.h-divider-dark {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent 100%);
+}
+
+/* ── Stat card dark ──────────────────────────────── */
+.stat-dk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.5rem 1rem;
+}
+.stat-dk-num {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
+}
+.stat-dk-label {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--dp-text-3);
+  max-width: 140px;
+}
+
+/* ── Preview card (hero product mockup) ─────────── */
+.preview-card {
+  background: rgba(8,18,35,0.85);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+}
+.preview-card-header {
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.preview-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+.preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+}
+.preview-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 0.25rem 0;
+}
+.preview-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.375rem;
+}
+
+/* ── Testimonial card ────────────────────────────── */
+.testi-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 1.125rem;
+  padding: 1.5rem;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+.testi-card:hover {
+  border-color: rgba(255,255,255,0.13);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ── FAQ item dark ───────────────────────────────── */
+.faq-dk {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.065);
+  border-radius: 0.875rem;
+  padding: 1.25rem 1.5rem;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.faq-dk:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.11);
+}
+
+/* ── Free/Paid feature list ──────────────────────── */
+.feat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+}
+.feat-check {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.feat-check-green { background: rgba(0,212,106,0.15); }
+.feat-check-blue  { background: rgba(75,142,255,0.15); }
+
+/* ── Footer link dark ────────────────────────────── */
+.footer-link {
+  color: var(--text-3);
+  transition: color 200ms ease;
+}
+.footer-link:hover { color: var(--text); }
+
+.footer-link-dk {
+  color: rgba(241,245,249,0.38);
+  transition: color 200ms ease;
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.footer-link-dk:hover { color: rgba(241,245,249,0.82); }
+
+/* ════════════════════════════════════════════════════
+   LIGHT PAGE UTILITIES (auditoria, resultado, obrigado)
+════════════════════════════════════════════════════ */
+
+/* ── Animations ─────────────────────────────────── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -97,9 +420,14 @@ body {
   70%  { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
   100% { box-shadow: 0 0 0 0   rgba(22, 163, 74, 0); }
 }
-@keyframes shimmerIn {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200%  0; }
+@keyframes neonPulse {
+  0%,100% { box-shadow: 0 0 28px var(--neon-glow), 0 4px 16px rgba(0,0,0,0.3); }
+  50%     { box-shadow: 0 0 50px var(--neon-glow), 0 0 80px var(--neon-glow-lg), 0 4px 20px rgba(0,0,0,0.35); }
+}
+@keyframes orbFloat {
+  0%,100% { transform: translate(0, 0) scale(1); }
+  33%     { transform: translate(20px, -30px) scale(1.05); }
+  66%     { transform: translate(-15px, 20px) scale(0.97); }
 }
 
 .anim-fade-up   { animation: fadeInUp 0.5s ease-out both; }
@@ -110,8 +438,11 @@ body {
 .anim-fade     { animation: fadeIn 0.35s ease-out both; }
 .anim-bar      { animation: barGrow 0.9s cubic-bezier(.22,1,.36,1) both; }
 .btn-pulse     { animation: pulseRing 2.2s ease-in-out infinite; }
+.orb-float     { animation: orbFloat 12s ease-in-out infinite; }
+.orb-float-2   { animation: orbFloat 16s ease-in-out infinite reverse; }
+.orb-float-3   { animation: orbFloat 20s ease-in-out infinite 4s; }
 
-/* ── Card ─────────────────────────────────────────── */
+/* ── Card (light pages) ──────────────────────────── */
 .card {
   background: var(--surface);
   border: 1px solid var(--bdr);
@@ -150,10 +481,9 @@ body {
 .inp.err { border-color: var(--danger); }
 .inp.err:focus { box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
 
-/* ── Input group (prefix / suffix) ───────────────── */
+/* ── Input group ──────────────────────────────────── */
 .inp-wrap { position: relative; }
-.inp-pfx,
-.inp-sfx {
+.inp-pfx, .inp-sfx {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -167,8 +497,6 @@ body {
 .inp-sfx { right: 0.9rem; }
 .inp.has-pfx { padding-left: 2.5rem; }
 .inp.has-sfx { padding-right: 3.25rem; }
-
-/* Select arrow */
 .inp.select-inp {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -177,7 +505,7 @@ body {
   cursor: pointer;
 }
 
-/* ── Buttons ─────────────────────────────────────── */
+/* ── Buttons (light pages) ─────────────────────────── */
 .btn-cta {
   display: inline-flex;
   align-items: center;
@@ -257,26 +585,7 @@ body {
   white-space: nowrap;
 }
 
-/* ── Footer link hover (CSS-only, safe in Server Components) ─ */
-.footer-link {
-  color: var(--text-3);
-  transition: color 200ms ease;
-}
-.footer-link:hover { color: var(--text); }
-
-/* ── Horizontal gradient divider ─────────────────── */
-.h-divider {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--bdr) 20%,
-    var(--bdr) 80%,
-    transparent 100%
-  );
-}
-
-/* ── Step connector line ──────────────────────────── */
+/* ── Step line ────────────────────────────────────── */
 .step-line {
   flex: 1;
   height: 2px;

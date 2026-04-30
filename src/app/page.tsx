@@ -1,518 +1,659 @@
-/* ─── Ícones inline reutilizáveis ─────────────────────────────────────────── */
 import type { CSSProperties } from "react";
 
-function Icon({ path, cls = "w-5 h-5", style }: { path: string; cls?: string; style?: CSSProperties }) {
+/* ─── SVG icon helper ────────────────────────────────────────────────────── */
+function I({ d, c = "w-5 h-5", sw = 2 }: { d: string; c?: string; sw?: number }) {
   return (
-    <svg className={cls} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+    <svg className={c} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={sw}>
+      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
     </svg>
   );
 }
 
-const LOGO_PATH =
-  "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z";
+/* ─── Aurora decorative orb ──────────────────────────────────────────────── */
+function Orb({ style, cls = "" }: { style: CSSProperties; cls?: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`absolute rounded-full pointer-events-none ${cls}`}
+      style={{ filter: "blur(100px)", ...style }}
+    />
+  );
+}
 
-/* ─── Logo ──────────────────────────────────────────────────────────────────── */
-function Logo({ inverted = false }: { inverted?: boolean }) {
+/* ─── SVG noise grain overlay ────────────────────────────────────────────── */
+function Grain() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ opacity: 0.028 }}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <filter id="grain-f">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#grain-f)" />
+    </svg>
+  );
+}
+
+/* ─── Logo ───────────────────────────────────────────────────────────────── */
+const LOGO_D = "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z";
+
+function Logo() {
   return (
     <div className="flex items-center gap-2.5">
       <span
         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: inverted ? "rgba(255,255,255,0.15)" : "#1E3A5F" }}
+        style={{ background: "linear-gradient(135deg, #00D46A22 0%, #00D46A44 100%)", border: "1px solid rgba(0,212,106,0.3)" }}
       >
-        <Icon path={LOGO_PATH} cls="w-4.5 h-4.5 text-white" />
+        <I d={LOGO_D} c="w-4 h-4" style={{ color: "#00D46A" } as CSSProperties} />
       </span>
-      <span
-        className="font-bold text-base tracking-tight"
-        style={{ color: inverted ? "#fff" : "#0F172A" }}
-      >
+      <span className="font-bold text-base tracking-tight" style={{ color: "#F1F5F9" }}>
         AuditCrédito
       </span>
     </div>
   );
 }
 
+/* ─── Hero product preview card ──────────────────────────────────────────── */
+function HeroPreview() {
+  return (
+    <div className="preview-card max-w-sm w-full mx-auto mt-12 anim-fade-up-4">
+      {/* Window chrome */}
+      <div className="preview-card-header">
+        <div className="preview-dot" style={{ background: "#FC5C5C" }} />
+        <div className="preview-dot" style={{ background: "#FCBC3C" }} />
+        <div className="preview-dot" style={{ background: "#34C759" }} />
+        <span className="ml-3 text-xs font-mono" style={{ color: "rgba(241,245,249,0.3)" }}>
+          auditcredito.com.br/resultado
+        </span>
+      </div>
+      {/* Content */}
+      <div className="p-5">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(241,245,249,0.35)" }}>
+            Análise — Crédito Pessoal
+          </span>
+          <span
+            className="text-xs font-bold px-2.5 py-1 rounded-full"
+            style={{ background: "rgba(252,92,92,0.15)", color: "#FC5C5C", border: "1px solid rgba(252,92,92,0.3)" }}
+          >
+            ⚠ Abusiva
+          </span>
+        </div>
+        {/* Rows */}
+        <div className="preview-row">
+          <span className="text-sm" style={{ color: "rgba(241,245,249,0.55)" }}>Taxa contratada</span>
+          <span className="text-sm font-bold" style={{ color: "#FC5C5C" }}>8,5% a.m.</span>
+        </div>
+        <div className="preview-row">
+          <span className="text-sm" style={{ color: "rgba(241,245,249,0.55)" }}>Média BCB (ref.)</span>
+          <span className="text-sm font-bold" style={{ color: "#00D46A" }}>3,2% a.m.</span>
+        </div>
+        <div className="preview-divider" />
+        {/* Bar visual */}
+        <div className="mt-3 mb-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-24 flex-shrink-0" style={{ color: "rgba(241,245,249,0.4)" }}>Sua taxa</span>
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
+              <div className="h-full rounded-full" style={{ width: "88%", background: "linear-gradient(90deg,#FC5C5C,#FF8C42)" }} />
+            </div>
+            <span className="text-xs w-14 text-right font-bold" style={{ color: "#FC5C5C" }}>8,5% a.m.</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-24 flex-shrink-0" style={{ color: "rgba(241,245,249,0.4)" }}>Média BCB</span>
+            <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
+              <div className="h-full rounded-full" style={{ width: "34%", background: "linear-gradient(90deg,#00D46A,#00C4C8)" }} />
+            </div>
+            <span className="text-xs w-14 text-right font-bold" style={{ color: "#00D46A" }}>3,2% a.m.</span>
+          </div>
+        </div>
+        <div className="preview-divider" />
+        <div className="preview-row mt-1">
+          <span className="text-sm" style={{ color: "rgba(241,245,249,0.55)" }}>Pago a mais (est.)</span>
+          <span className="text-base font-bold" style={{ color: "#fff" }}>R$ 4.290</span>
+        </div>
+        <div className="mt-4 text-center">
+          <span
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+            style={{ background: "rgba(0,212,106,0.1)", color: "#00D46A", border: "1px solid rgba(0,212,106,0.2)" }}
+          >
+            Relatório completo + contestação pronta por R$ 19,90 →
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Star row ───────────────────────────────────────────────────────────── */
+function Stars() {
+  return (
+    <div className="flex gap-0.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="#FBBF24">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   PAGE
+════════════════════════════════════════════════════════════════════════════ */
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col" style={{ fontFamily: "var(--font-ibm, system-ui)" }}>
+    <div style={{ background: "#060D1A", color: "#F1F5F9", fontFamily: "var(--font-ibm, system-ui)" }}>
 
-      {/* ════════════════════════════════════════════════════════
-          HEADER — sticky, glass-like
-      ════════════════════════════════════════════════════════ */}
+      {/* ══════════ HEADER ══════════════════════════════════════════════════ */}
       <header
-        className="sticky top-0 z-50 border-b"
+        className="sticky top-0 z-50"
         style={{
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(12px)",
-          borderColor: "var(--bdr)",
+          background: "rgba(6,13,26,0.8)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
-          <Logo />
-          <a href="/auditoria" className="btn-cta text-sm py-2.5 px-5">
+          <a href="/" aria-label="AuditCrédito — página inicial"><Logo /></a>
+          <a href="/auditoria" className="btn-neon text-sm py-2.5 px-5">
             Analisar agora
           </a>
         </div>
       </header>
 
-      <main className="flex-1">
+      <main>
 
-        {/* ════════════════════════════════════════════════════
-            HERO — dark navy, grid texture
-        ════════════════════════════════════════════════════ */}
+        {/* ══════════ HERO ════════════════════════════════════════════════ */}
         <section
           className="relative overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, #0D1B2A 0%, #1E3A5F 60%, #2D5A8E 100%)",
-          }}
+          style={{ minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "center" }}
         >
-          {/* Grid texture */}
+          {/* Grain texture */}
+          <Grain />
+
+          {/* Aurora orbs */}
+          <Orb
+            cls="orb-float"
+            style={{ width: 560, height: 560, top: "-140px", right: "-80px", background: "radial-gradient(circle, rgba(0,212,106,0.13) 0%, transparent 70%)" }}
+          />
+          <Orb
+            cls="orb-float-2"
+            style={{ width: 480, height: 480, bottom: "0px", left: "-120px", background: "radial-gradient(circle, rgba(75,142,255,0.12) 0%, transparent 70%)" }}
+          />
+          <Orb
+            style={{ width: 320, height: 320, top: "40%", left: "45%", background: "radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)" }}
+          />
+
+          {/* Dot grid */}
           <div
             className="absolute inset-0 pointer-events-none"
+            aria-hidden="true"
             style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-            }}
-          />
-          {/* Glow spot */}
-          <div
-            className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none"
-            style={{
-              background: "radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%)",
-              transform: "translate(30%, -30%)",
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
+              maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
             }}
           />
 
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 mb-6 anim-fade-up">
-              <span
-                className="trust-pill"
-                style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.9)" }}
-              >
-                <Icon path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" cls="w-3.5 h-3.5" />
-                Banco Central do Brasil — dados oficiais
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center w-full">
+
+            {/* Label pill */}
+            <div className="flex justify-center mb-6 anim-fade-up">
+              <span className="section-label">
+                <I d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" c="w-3 h-3" />
+                Dados oficiais do Banco Central do Brasil
               </span>
             </div>
 
-            {/* H1 */}
+            {/* H1 — three rhythm lines */}
             <h1
-              className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 anim-fade-up-1"
-              style={{ color: "#fff", letterSpacing: "-0.02em" }}
+              className="font-bold leading-none mb-6 anim-fade-up-1"
+              style={{ fontSize: "clamp(2.4rem, 7vw, 4.5rem)", letterSpacing: "-0.03em" }}
             >
-              O banco está te cobrando{" "}
-              <span
-                style={{
-                  background: "linear-gradient(90deg, #60A5FA, #34D399)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                juros acima do mercado
-              </span>
-              <br className="hidden sm:block" />
-              — e você provavelmente não sabe disso.
+              <span style={{ color: "#F1F5F9" }}>O banco cobra mais.</span>
+              <br />
+              <span style={{ color: "#F1F5F9" }}>Você paga </span>
+              <span className="gradient-text-neon">sem saber disso.</span>
             </h1>
 
             {/* Sub */}
             <p
-              className="text-lg sm:text-xl mb-8 leading-relaxed max-w-2xl mx-auto anim-fade-up-2"
-              style={{ color: "rgba(255,255,255,0.72)" }}
+              className="text-lg sm:text-xl leading-relaxed max-w-xl mx-auto mb-10 anim-fade-up-2"
+              style={{ color: "rgba(241,245,249,0.6)" }}
             >
-              Em 2 minutos você vê a verdade sobre a taxa do seu crédito.
-              Comparamos com os dados oficiais do Banco Central.
-              Sem cadastro, sem CPF, sem enrolação.
+              Em 2 minutos você vê a verdade sobre a taxa do seu crédito —
+              comparada com os dados oficiais do Banco Central.
+              Sem CPF. Sem cadastro. Sem enrolação.
             </p>
 
-            {/* CTA */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 anim-fade-up-3">
-              <a href="/auditoria" className="btn-cta btn-pulse text-base w-full sm:w-auto py-4 px-8">
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 anim-fade-up-3">
+              <a href="/auditoria" className="btn-neon btn-neon-pulse w-full sm:w-auto text-base py-4 px-8">
                 Descobrir agora — é grátis
-                <Icon path="M17 8l4 4m0 0l-4 4m4-4H3" cls="w-4 h-4" />
+                <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-4 h-4" />
+              </a>
+              <a href="#como-funciona" className="btn-dark-ghost w-full sm:w-auto text-base py-4 px-8">
+                Ver como funciona
               </a>
             </div>
 
             {/* Trust strips */}
             <div
-              className="flex flex-wrap items-center justify-center gap-3 anim-fade-up-4"
-              style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}
+              className="flex flex-wrap items-center justify-center gap-4 mt-6 anim-fade-up-4"
+              style={{ color: "rgba(241,245,249,0.32)", fontSize: "0.8rem" }}
             >
-              {["Sem CPF", "Sem cadastro", "Resultado em segundos", "100% gratuito"].map((t) => (
-                <span key={t} className="flex items-center gap-1">
-                  <Icon path="M5 13l4 4L19 7" cls="w-3 h-3" />
+              {["Sem CPF", "Sem cadastro", "Resultado em 2 min", "100% gratuito"].map((t) => (
+                <span key={t} className="flex items-center gap-1.5">
+                  <I d="M5 13l4 4L19 7" c="w-3 h-3" />
                   {t}
                 </span>
               ))}
             </div>
-          </div>
 
-          {/* Stats bar */}
-          <div
-            className="relative border-t"
-            style={{ borderColor: "rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.25)" }}
-          >
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-3 gap-4 text-center">
-              {[
-                { n: "400%", label: "ao ano — rotativo de cartão no Brasil, o maior do planeta" },
-                { n: "R$&nbsp;19,90", label: "pelo relatório completo + contestação pronta" },
-                { n: "2 min", label: "para saber a verdade sobre a sua taxa" },
-              ].map(({ n, label }) => (
-                <div key={label} className="flex flex-col items-center gap-1">
-                  <span
-                    className="text-2xl sm:text-3xl font-bold"
-                    style={{ color: "#60A5FA" }}
-                    dangerouslySetInnerHTML={{ __html: n }}
-                  />
-                  <span
-                    className="text-xs sm:text-sm leading-snug max-w-[160px]"
-                    style={{ color: "rgba(255,255,255,0.5)" }}
-                  >
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {/* Product preview */}
+            <HeroPreview />
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════════
-            COMO FUNCIONA — 3 passos com linha conectora
-        ════════════════════════════════════════════════════ */}
-        <section className="py-20 px-4 sm:px-6" style={{ background: "var(--surface)" }}>
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-14">
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: "var(--blue)" }}
+        {/* ══════════ STATS STRIP ════════════════════════════════════════ */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.025)",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 grid grid-cols-3 divide-x" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+            {[
+              { n: "400%", sup: "a.a.", label: "Juros do rotativo no Brasil — o mais alto do planeta" },
+              { n: "R$ 19,90", sup: "", label: "Relatório completo + documento de contestação pronto" },
+              { n: "2 min", sup: "", label: "Para saber exatamente quanto você está pagando a mais" },
+            ].map(({ n, sup, label }) => (
+              <div key={label} className="stat-dk" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                <span className="stat-dk-num">
+                  {n}
+                  {sup && <sup style={{ fontSize: "0.45em", verticalAlign: "super", color: "rgba(241,245,249,0.5)" }}>{sup}</sup>}
+                </span>
+                <span className="stat-dk-label">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ══════════ COMO FUNCIONA ════════════════════════════════════════ */}
+        <section id="como-funciona" className="relative py-24 px-4 sm:px-6 overflow-hidden">
+          <Orb
+            style={{ width: 400, height: 400, top: "0", left: "-150px", background: "radial-gradient(circle, rgba(75,142,255,0.08) 0%, transparent 70%)" }}
+          />
+          <div className="relative max-w-3xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-16">
+              <span className="section-label section-label-blue mb-4 inline-flex">Em 3 passos simples</span>
+              <h2
+                className="font-bold mt-4"
+                style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
               >
-                Em 3 passos simples
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
                 Como funciona
               </h2>
-              <p className="mt-3 text-base max-w-md mx-auto" style={{ color: "var(--text-3)" }}>
+              <p className="mt-3 text-base" style={{ color: "rgba(241,245,249,0.5)" }}>
                 Direto ao ponto. Sem cadastro, sem burocracia.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {/* Steps — vertical layout with connector */}
+            <div className="space-y-4">
               {[
                 {
-                  num: "01",
+                  n: "01",
                   icon: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
-                  title: "Informe os dados",
-                  body: "Tipo de crédito, valor, taxa cobrada e prazo. Sem CPF, sem senha, sem dado bancário.",
+                  title: "Informe os dados do seu crédito",
+                  body: "Tipo de crédito, valor, taxa cobrada e prazo. Nenhum CPF, nenhuma senha, nenhum dado bancário.",
+                  tag: "30 segundos",
                 },
                 {
-                  num: "02",
+                  n: "02",
                   icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-                  title: "Buscamos no Banco Central",
-                  body: "Acessamos em tempo real a API pública do BCB/SGS. Os dados são deles — a gente só organiza para você.",
+                  title: "Consultamos o Banco Central em tempo real",
+                  body: "Acessamos a API pública do BCB/SGS e buscamos a taxa média oficial para o seu tipo de crédito.",
+                  tag: "Automático",
                 },
                 {
-                  num: "03",
+                  n: "03",
                   icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
-                  title: "Você vê a verdade",
-                  body: "Sua taxa vs. a média oficial, a diferença em reais, o veredicto. Sem eufemismo.",
+                  title: "Você vê a verdade — sem filtro",
+                  body: "Sua taxa vs. a média oficial, a diferença em reais, e o veredicto. Sem eufemismo, sem enrolação.",
+                  tag: "Resultado imediato",
                 },
-              ].map(({ num, icon, title, body }, i) => (
-                <div
-                  key={num}
-                  className="relative flex flex-col gap-4 p-6 rounded-2xl card card-lift"
-                  style={{ borderColor: "var(--bdr)" }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "var(--surface-3)" }}
+              ].map(({ n, icon, title, body, tag }, idx) => (
+                <div key={n} className="flex gap-5 glass-card glass-card-neon p-6">
+                  {/* Left: number */}
+                  <div className="flex flex-col items-center gap-3 flex-shrink-0">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(0,212,106,0.15), rgba(0,212,106,0.05))",
+                        border: "1px solid rgba(0,212,106,0.3)",
+                        color: "#00D46A",
+                        letterSpacing: "-0.04em",
+                      }}
                     >
-                      <Icon path={icon} cls="w-5 h-5" style={{ color: "var(--blue)" }} />
-                    </span>
-                    <span
-                      className="text-4xl font-bold leading-none"
-                      style={{ color: "var(--bdr-2)", fontVariantNumeric: "tabular-nums" }}
-                    >
-                      {num}
-                    </span>
+                      {n}
+                    </div>
+                    {idx < 2 && (
+                      <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.07)", minHeight: 24 }} />
+                    )}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-base mb-1" style={{ color: "var(--text)" }}>
-                      {title}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-3)" }}>
+                  {/* Right: content */}
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-start justify-between gap-3 mb-1.5 flex-wrap">
+                      <h3 className="font-bold text-base" style={{ color: "#F1F5F9" }}>{title}</h3>
+                      <span
+                        className="text-xs font-semibold px-2.5 py-0.5 rounded-full flex-shrink-0"
+                        style={{ background: "rgba(255,255,255,0.06)", color: "rgba(241,245,249,0.45)", border: "1px solid rgba(255,255,255,0.08)" }}
+                      >
+                        {tag}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-relaxed" style={{ color: "rgba(241,245,249,0.5)" }}>
                       {body}
                     </p>
-                  </div>
-                  {/* Step indicator dot */}
-                  <div
-                    className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold sm:hidden"
-                    style={{ background: "var(--navy-mid)" }}
-                  >
-                    {i + 1}
+                    <div className="flex items-center gap-2 mt-3">
+                      <I d={icon} c="w-4 h-4 flex-shrink-0" style={{ color: "#00D46A" } as CSSProperties} />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="mt-12 text-center">
-              <a href="/auditoria" className="btn-cta inline-flex">
+              <a href="/auditoria" className="btn-neon inline-flex">
                 Fazer minha análise gratuita
+                <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-4 h-4" />
               </a>
             </div>
           </div>
         </section>
 
-        <div className="h-divider" />
-
-        {/* ════════════════════════════════════════════════════
-            O QUE VOCÊ DESCOBRE — 4 cards em grid 2×2
-        ════════════════════════════════════════════════════ */}
-        <section className="py-20 px-4 sm:px-6" style={{ background: "var(--surface-3)" }}>
-          <div className="max-w-5xl mx-auto">
+        {/* ══════════ O QUE VOCÊ DESCOBRE ══════════════════════════════════ */}
+        <section
+          className="relative py-24 px-4 sm:px-6 overflow-hidden"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
+          <Orb
+            cls="orb-float-3"
+            style={{ width: 500, height: 500, top: "-100px", right: "-150px", background: "radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)" }}
+          />
+          <div className="relative max-w-5xl mx-auto">
             <div className="text-center mb-14">
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: "var(--blue)" }}
+              <span className="section-label mb-4 inline-flex">Análise completa</span>
+              <h2
+                className="font-bold mt-4"
+                style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
               >
-                Análise completa
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
                 O que aparece na sua tela
               </h2>
-              <p className="mt-3 text-base max-w-md mx-auto" style={{ color: "var(--text-3)" }}>
-                A análise básica já mostra o essencial. O relatório entrega tudo que precisa para agir.
+              <p className="mt-3 text-base" style={{ color: "rgba(241,245,249,0.5)" }}>
+                Análise básica já mostra o essencial. O relatório entrega tudo para agir.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {[
-                {
-                  icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
-                  badge: "Grátis",
-                  badgeColor: "var(--success)",
-                  title: "Comparativo de taxas",
-                  body: "Sua taxa cobrada lado a lado com a média oficial do Banco Central. Os dois números na mesma tela.",
-                },
-                {
-                  icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                  badge: "Grátis",
-                  badgeColor: "var(--success)",
-                  title: "Diferença em reais",
-                  body: "Não em percentual abstrato — em reais. Quanto saiu do seu bolso a mais, calculado com juros compostos.",
-                },
-                {
-                  icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                  badge: "Grátis",
-                  badgeColor: "var(--success)",
-                  title: "Veredicto da taxa",
-                  body: "Dentro da média, acima ou potencialmente abusiva. Com base nos dados do BCB — não na nossa opinião.",
-                },
-                {
-                  icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-                  badge: "Relatório R$ 19,90",
-                  badgeColor: "var(--navy-mid)",
-                  title: "Contestação pronta",
-                  body: "Requerimento Administrativo completo, base legal (CDC + Súmula 297 STJ) e guia de negociação. Só assina e envia.",
-                },
-              ].map(({ icon, badge, badgeColor, title, body }) => (
-                <div
-                  key={title}
-                  className="flex gap-4 p-5 rounded-2xl bg-white card card-lift"
-                  style={{ borderColor: "var(--bdr)" }}
-                >
-                  <div
-                    className="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center"
-                    style={{ background: "var(--surface-3)" }}
+            {/* Free vs Paid two-column */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+              {/* Free column */}
+              <div className="glass-card p-6 sm:p-7">
+                <div className="flex items-center gap-2.5 mb-6">
+                  <span
+                    className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+                    style={{ background: "rgba(0,212,106,0.12)", color: "#00D46A", border: "1px solid rgba(0,212,106,0.25)" }}
                   >
-                    <svg className="w-5 h-5" style={{ color: "var(--blue)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
-                    </svg>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-semibold text-sm" style={{ color: "var(--text)" }}>
-                        {title}
-                      </h3>
-                      <span
-                        className="text-xs font-semibold px-2 py-0.5 rounded-full text-white flex-shrink-0"
-                        style={{ background: badgeColor }}
-                      >
-                        {badge}
-                      </span>
-                    </div>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-3)" }}>
-                      {body}
-                    </p>
-                  </div>
+                    Grátis
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "rgba(241,245,249,0.7)" }}>
+                    Análise básica
+                  </span>
                 </div>
-              ))}
+                <div className="space-y-1">
+                  {[
+                    { icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", title: "Comparativo de taxas", body: "Sua taxa cobrada lado a lado com a média oficial do Banco Central." },
+                    { icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z", title: "Diferença em reais", body: "Não em percentual abstrato — em reais, calculado com juros compostos." },
+                    { icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z", title: "Veredicto da taxa", body: "Dentro da média, acima ou potencialmente abusiva. Com base no BCB." },
+                  ].map(({ icon, title, body }) => (
+                    <div key={title} className="feat-row">
+                      <div className="feat-check feat-check-green">
+                        <I d="M5 13l4 4L19 7" c="w-3 h-3" style={{ color: "#00D46A" } as CSSProperties} sw={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: "#F1F5F9" }}>{title}</p>
+                        <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "rgba(241,245,249,0.45)" }}>{body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Paid column */}
+              <div
+                className="glass-card p-6 sm:p-7"
+                style={{ border: "1px solid rgba(75,142,255,0.25)", background: "rgba(75,142,255,0.04)" }}
+              >
+                <div className="flex items-center gap-2.5 mb-6">
+                  <span
+                    className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+                    style={{ background: "rgba(75,142,255,0.14)", color: "#4B8EFF", border: "1px solid rgba(75,142,255,0.3)" }}
+                  >
+                    R$ 19,90
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: "rgba(241,245,249,0.7)" }}>
+                    Relatório completo
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {[
+                    { title: "Cálculo detalhado com juros compostos", body: "Cada centavo calculado mês a mês, com memória de cálculo completa." },
+                    { title: "Base legal pronta (CDC + Súmula 297 STJ)", body: "Os artigos certos para contestar cobranças abusivas por escrito." },
+                    { title: "Requerimento Administrativo completo", body: "Preenche com seus dados, assina e envia ao banco. Só isso." },
+                    { title: "Guia de negociação passo a passo", body: "O que dizer, onde ir e como reagir quando o banco empurrar." },
+                  ].map(({ title, body }) => (
+                    <div key={title} className="feat-row">
+                      <div className="feat-check feat-check-blue">
+                        <I d="M5 13l4 4L19 7" c="w-3 h-3" style={{ color: "#4B8EFF" } as CSSProperties} sw={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: "#F1F5F9" }}>{title}</p>
+                        <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "rgba(241,245,249,0.45)" }}>{body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 pt-5" style={{ borderTop: "1px solid rgba(75,142,255,0.15)" }}>
+                  <a href="/auditoria" className="btn-neon w-full justify-center text-sm py-3">
+                    Fazer análise gratuita primeiro
+                    <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-4 h-4" />
+                  </a>
+                  <p className="text-center text-xs mt-3" style={{ color: "rgba(241,245,249,0.3)" }}>
+                    Relatório disponível após a análise. Garantia de 7 dias.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <div className="h-divider" />
-
-        {/* ════════════════════════════════════════════════════
-            A VERDADE QUE O BANCO NÃO CONTA — bullets emocionais
-        ════════════════════════════════════════════════════ */}
-        <section className="py-20 px-4 sm:px-6" style={{ background: "var(--surface)" }}>
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-12">
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: "var(--danger)" }}
-              >
+        {/* ══════════ A VERDADE QUE O BANCO NÃO CONTA ════════════════════ */}
+        <section
+          className="relative py-24 px-4 sm:px-6 overflow-hidden"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
+          <Orb
+            cls="orb-float"
+            style={{ width: 450, height: 450, top: "50%", left: "-180px", background: "radial-gradient(circle, rgba(252,92,92,0.07) 0%, transparent 70%)" }}
+          />
+          <div className="relative max-w-3xl mx-auto">
+            <div className="text-center mb-14">
+              <span className="section-label section-label-red mb-4 inline-flex">
                 O que ninguém te conta no gerente
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
-                O banco sabe o que faz —{" "}
-                <span style={{ color: "var(--navy-mid)" }}>e você também vai saber agora</span>
+              </span>
+              <h2
+                className="font-bold mt-4"
+                style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
+              >
+                O banco sabe o que faz.{" "}
+                <span className="gradient-text-neon">Agora você também vai saber.</span>
               </h2>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-3">
               {[
                 {
-                  icon: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                  color: "var(--danger)",
-                  bg: "#FEF2F2",
+                  cls: "alert-dk-red",
+                  iconD: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+                  iconColor: "#FC5C5C",
+                  label: "Realidade brutal",
                   text: "O Brasil tem os juros ao consumidor mais altos do mundo. O cartão rotativo passou de 400% ao ano em 2024. Isso não é exagero — é o próprio Banco Central confirmando nos relatórios oficiais.",
                 },
                 {
-                  icon: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                  color: "var(--warning)",
-                  bg: "#FFFBEB",
+                  cls: "alert-dk-amber",
+                  iconD: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+                  iconColor: "#FBBF24",
+                  label: "Seu direito existe",
                   text: "O CDC e a Súmula 297 do STJ garantem que cláusulas abusivas podem ser contestadas. O banco tem advogados que sabem disso há décadas. A questão é: você sabe também?",
                 },
                 {
-                  icon: "M5 13l4 4L19 7",
-                  color: "var(--success)",
-                  bg: "#F0FDF4",
+                  cls: "alert-dk-green",
+                  iconD: "M5 13l4 4L19 7",
+                  iconColor: "#00D46A",
+                  label: "A informação é sua",
                   text: "O Banco Central publica todo mês a taxa média por tipo de crédito. Essa informação é pública, gratuita e é sua por direito. A maioria das pessoas nunca soube como acessá-la.",
                 },
                 {
-                  icon: "M5 13l4 4L19 7",
-                  color: "var(--success)",
-                  bg: "#F0FDF4",
+                  cls: "alert-dk-green",
+                  iconD: "M5 13l4 4L19 7",
+                  iconColor: "#00D46A",
+                  label: "O primeiro passo",
                   text: "Saber é o primeiro passo para agir. Não prometemos milagres — entregamos o que você tem direito: a informação organizada, os números certos e o documento pronto para contestar.",
                 },
-              ].map(({ icon, color, bg, text }, i) => (
-                <div
-                  key={i}
-                  className="flex gap-4 p-5 rounded-xl"
-                  style={{ background: bg, border: `1px solid ${bg === "#F0FDF4" ? "var(--success-bdr)" : bg === "#FEF2F2" ? "var(--danger-bdr)" : "var(--warning-bdr)"}` }}
-                >
+              ].map(({ cls, iconD, iconColor, label, text }, i) => (
+                <div key={i} className={`${cls} flex gap-4 p-5`}>
                   <div
-                    className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5"
-                    style={{ background: color + "22" }}
+                    className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5"
+                    style={{ background: `${iconColor}18` }}
                   >
-                    <svg className="w-4 h-4" style={{ color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
+                    <svg className="w-4 h-4" style={{ color: iconColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d={iconD} />
                     </svg>
                   </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>
-                    {text}
-                  </p>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: iconColor }}>{label}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "rgba(241,245,249,0.65)" }}>{text}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════════
-            CTA BANNER — dark navy
-        ════════════════════════════════════════════════════ */}
+        {/* ══════════ MID CTA ══════════════════════════════════════════════ */}
         <section
-          className="py-16 px-4 sm:px-6"
-          style={{ background: "linear-gradient(135deg, #0D1B2A 0%, #1E3A5F 100%)" }}
+          className="relative py-20 px-4 sm:px-6 overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, rgba(0,212,106,0.06) 0%, rgba(6,13,26,0) 60%)",
+            borderTop: "1px solid rgba(0,212,106,0.12)",
+            borderBottom: "1px solid rgba(0,212,106,0.12)",
+          }}
         >
-          <div className="max-w-2xl mx-auto text-center">
+          <Orb
+            style={{ width: 480, height: 480, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(0,212,106,0.07) 0%, transparent 70%)" }}
+          />
+          <div className="relative max-w-2xl mx-auto text-center">
             <h2
-              className="text-2xl sm:text-3xl font-bold mb-4 leading-tight"
-              style={{ color: "#fff", letterSpacing: "-0.01em" }}
+              className="font-bold mb-4 leading-tight"
+              style={{ fontSize: "clamp(1.6rem, 4vw, 2.4rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
             >
-              Chega de pagar a mais em silêncio
+              Chega de pagar a mais em silêncio.
             </h2>
-            <p className="mb-8 leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
-              O relatório completo traz o cálculo com juros compostos, o modelo de Requerimento
-              Administrativo pronto para assinar, as referências legais corretas e o guia de
-              negociação passo a passo. Tudo por R&nbsp;19,90 — após a análise gratuita.
+            <p className="text-lg mb-8 leading-relaxed" style={{ color: "rgba(241,245,249,0.55)" }}>
+              O relatório completo traz o cálculo com juros compostos,
+              o Requerimento Administrativo pronto para assinar e o guia de negociação.
+              Tudo por{" "}
+              <strong style={{ color: "#F1F5F9" }}>R&nbsp;19,90</strong>{" "}
+              — após a análise gratuita.
             </p>
-            <a href="/auditoria" className="btn-cta inline-flex text-base py-4 px-10">
+            <a href="/auditoria" className="btn-neon inline-flex text-base py-4 px-10">
               Fazer análise gratuita agora
             </a>
-            <p className="mt-4 text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-              A análise básica é sempre grátis. O relatório é opcional — R$&nbsp;19,90.
+            <p className="mt-4 text-sm" style={{ color: "rgba(241,245,249,0.28)" }}>
+              A análise básica é sempre grátis. O relatório é opcional.
             </p>
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════════
-            DEPOIMENTOS — 3 cards com avatar
-        ════════════════════════════════════════════════════ */}
-        <section className="py-20 px-4 sm:px-6" style={{ background: "var(--surface)" }}>
+        {/* ══════════ DEPOIMENTOS ══════════════════════════════════════════ */}
+        <section className="py-24 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-14">
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-3"
-                style={{ color: "var(--blue)" }}
+              <span className="section-label section-label-blue mb-4 inline-flex">Quem já descobriu</span>
+              <h2
+                className="font-bold mt-4"
+                style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
               >
-                Quem já descobriu
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
                 Pessoas que tomaram o controle
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {[
                 {
                   texto: "Achava que estava pagando normal. O relatório mostrou que paguei R$ 2.400 a mais no meu financiamento. Fui ao banco no mesmo dia com o documento em mãos.",
                   nome: "Carlos M.",
                   tipo: "Crédito pessoal · São Paulo",
                   inicial: "C",
+                  color: "#00D46A",
                 },
                 {
                   texto: "Taxa quase 3x acima da média. O modelo de requerimento me poupou horas de pesquisa. Entrei com a contestação e o banco reduziu os juros em 15 dias.",
                   nome: "Fernanda R.",
                   tipo: "Cartão rotativo · Belo Horizonte",
                   inicial: "F",
+                  color: "#4B8EFF",
                 },
                 {
-                  texto: "Minha taxa estava na média, mas aprendi que posso negociar. Conversei com o gerente, mostrei os números e consegui reduzir ainda mais. Isso eu não sabia.",
+                  texto: "Minha taxa estava na média, mas aprendi que posso negociar. Mostrei os números ao gerente e consegui reduzir ainda mais. Isso eu não sabia que podia fazer.",
                   nome: "Paulo S.",
                   tipo: "Consignado · Porto Alegre",
                   inicial: "P",
+                  color: "#A855F7",
                 },
-              ].map(({ texto, nome, tipo, inicial }) => (
-                <div
-                  key={nome}
-                  className="flex flex-col gap-4 p-6 rounded-2xl card card-lift"
-                  style={{ borderColor: "var(--bdr)" }}
-                >
-                  {/* Stars */}
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-4 h-4" fill="#F59E0B" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-2)" }}>
+              ].map(({ texto, nome, tipo, inicial, color }) => (
+                <div key={nome} className="testi-card flex flex-col gap-4">
+                  <Stars />
+                  {/* Large open-quote */}
+                  <p
+                    className="text-sm leading-relaxed flex-1"
+                    style={{ color: "rgba(241,245,249,0.65)" }}
+                  >
                     &ldquo;{texto}&rdquo;
                   </p>
-                  <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: "var(--bdr)" }}>
+                  <div
+                    className="flex items-center gap-3 pt-4"
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
+                  >
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
-                      style={{ background: "var(--navy-mid)" }}
+                      style={{ background: `${color}22`, border: `1px solid ${color}44`, color }}
                     >
                       {inicial}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm" style={{ color: "var(--text)" }}>{nome}</p>
-                      <p className="text-xs" style={{ color: "var(--text-4)" }}>{tipo}</p>
+                      <p className="font-semibold text-sm" style={{ color: "#F1F5F9" }}>{nome}</p>
+                      <p className="text-xs" style={{ color: "rgba(241,245,249,0.3)" }}>{tipo}</p>
                     </div>
                   </div>
                 </div>
@@ -521,27 +662,29 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="h-divider" />
-
-        {/* ════════════════════════════════════════════════════
-            FAQ
-        ════════════════════════════════════════════════════ */}
-        <section className="py-20 px-4 sm:px-6" style={{ background: "var(--surface-2)" }}>
+        {/* ══════════ FAQ ══════════════════════════════════════════════════ */}
+        <section
+          className="py-24 px-4 sm:px-6"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
+              <h2
+                className="font-bold"
+                style={{ fontSize: "clamp(1.75rem, 4vw, 2.25rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
+              >
                 Perguntas frequentes
               </h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {[
                 {
                   q: "Isso limpa meu nome?",
-                  a: "Não — e é importante deixar isso claro. AuditCrédito compara a taxa do seu contrato com os dados do Banco Central. Se a taxa estiver abusiva, você vai ter o documento certo para questionar junto ao banco ou aos órgãos competentes.",
+                  a: "Não — e é importante deixar isso claro. AuditCrédito compara a taxa do seu contrato com os dados do Banco Central. Se a taxa estiver abusiva, você vai ter o documento certo para questionar junto ao banco.",
                 },
                 {
                   q: "O relatório tem valor jurídico?",
-                  a: "Não substitui um advogado. Mas entrega os números organizados, a base legal relevante (CDC, Súmula 297 do STJ) e o modelo de Requerimento Administrativo pronto para assinar e enviar. O que você faz com isso é sua decisão.",
+                  a: "Não substitui um advogado. Mas entrega os números organizados, a base legal relevante (CDC, Súmula 297 do STJ) e o modelo de Requerimento Administrativo pronto para assinar e enviar.",
                 },
                 {
                   q: "De onde vêm os dados?",
@@ -549,73 +692,71 @@ export default function Home() {
                 },
                 {
                   q: "Preciso pagar para usar?",
-                  a: "A análise básica é sempre grátis. Você vê o comparativo de taxas, a diferença em reais e o veredicto. O relatório completo — com cálculo detalhado, base legal e modelo de requerimento — custa R$ 19,90.",
+                  a: "A análise básica é sempre grátis. O relatório completo — com cálculo detalhado, base legal e modelo de requerimento — custa R$ 19,90.",
                 },
                 {
                   q: "Meus dados ficam armazenados?",
-                  a: "Apenas o necessário para entregar o relatório. Nenhum CPF, nenhuma senha, nenhum dado bancário. Os dados são excluídos após 90 dias. Todos os detalhes estão na Política de Privacidade.",
+                  a: "Apenas o necessário para entregar o relatório. Nenhum CPF, nenhuma senha, nenhum dado bancário. Excluídos após 90 dias. Todos os detalhes na Política de Privacidade.",
                 },
                 {
                   q: "E se eu não ficar satisfeito?",
                   a: "Garantia de 7 dias, sem burocracia e sem perguntas. Mande um e-mail para suporte@auditcredito.com.br e devolvemos o valor integral.",
                 },
-              ].map(({ q, a }, i) => (
-                <div
-                  key={q}
-                  className="rounded-xl p-5"
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--bdr)",
-                  }}
-                >
-                  <p className="font-semibold text-sm mb-2" style={{ color: "var(--text)" }}>
-                    {q}
-                  </p>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-3)" }}>
-                    {a}
-                  </p>
+              ].map(({ q, a }) => (
+                <div key={q} className="faq-dk">
+                  <p className="font-semibold text-sm mb-2" style={{ color: "#F1F5F9" }}>{q}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(241,245,249,0.5)" }}>{a}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════════
-            CTA FINAL — gradiente escuro com urgência
-        ════════════════════════════════════════════════════ */}
+        {/* ══════════ FINAL CTA ════════════════════════════════════════════ */}
         <section
-          className="py-24 px-4 sm:px-6 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #0D1B2A 0%, #1E3A5F 70%, #2D5A8E 100%)" }}
+          className="relative py-28 px-4 sm:px-6 overflow-hidden"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
         >
+          <Grain />
+          <Orb
+            cls="orb-float"
+            style={{ width: 600, height: 600, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(0,212,106,0.1) 0%, rgba(75,142,255,0.06) 50%, transparent 70%)" }}
+          />
+          {/* Horizontal grid lines */}
           <div
             className="absolute inset-0 pointer-events-none"
+            aria-hidden="true"
             style={{
-              backgroundImage:
-                "radial-gradient(circle at 20% 80%, rgba(37,99,235,0.12) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(22,163,74,0.08) 0%, transparent 50%)",
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)",
+              backgroundSize: "100% 64px",
             }}
           />
           <div className="relative max-w-2xl mx-auto text-center">
+            <span className="section-label mb-6 inline-flex">Última chance de agir hoje</span>
             <h2
-              className="text-2xl sm:text-4xl font-bold mb-4 leading-tight"
-              style={{ color: "#fff", letterSpacing: "-0.02em" }}
+              className="font-black leading-tight mt-6 mb-5"
+              style={{ fontSize: "clamp(2rem, 6vw, 3.5rem)", letterSpacing: "-0.03em", color: "#F1F5F9" }}
             >
               Quanto tempo você ainda vai ficar sem saber?
             </h2>
-            <p className="text-lg mb-8" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <p
+              className="text-lg mb-10 leading-relaxed"
+              style={{ color: "rgba(241,245,249,0.55)", maxWidth: 480, margin: "0 auto 2.5rem" }}
+            >
               Menos de 2 minutos. Sem cadastro. Sem cartão de crédito para a análise básica.
-              Só a verdade sobre a taxa que você está pagando.
+              Só a verdade sobre a taxa que você está pagando agora.
             </p>
-            <a href="/auditoria" className="btn-cta text-lg py-5 px-12 inline-flex">
+            <a href="/auditoria" className="btn-neon btn-neon-pulse inline-flex text-lg py-5 px-12">
               Quero saber agora — é grátis
-              <Icon path="M17 8l4 4m0 0l-4 4m4-4H3" cls="w-5 h-5" />
+              <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-5 h-5" />
             </a>
             <div
-              className="flex flex-wrap items-center justify-center gap-4 mt-6 text-sm"
-              style={{ color: "rgba(255,255,255,0.45)" }}
+              className="flex flex-wrap items-center justify-center gap-5 mt-8 text-sm"
+              style={{ color: "rgba(241,245,249,0.3)" }}
             >
               {["Garantia de 7 dias", "Dados do Banco Central", "Sem CPF"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5">
-                  <Icon path="M5 13l4 4L19 7" cls="w-3.5 h-3.5" />
+                  <I d="M5 13l4 4L19 7" c="w-3.5 h-3.5" />
                   {t}
                 </span>
               ))}
@@ -625,47 +766,42 @@ export default function Home() {
 
       </main>
 
-      {/* ════════════════════════════════════════════════════
-          FOOTER
-      ════════════════════════════════════════════════════ */}
+      {/* ══════════ FOOTER ══════════════════════════════════════════════ */}
       <footer
-        className="border-t py-10 px-4 sm:px-6"
-        style={{ background: "var(--surface)", borderColor: "var(--bdr)" }}
+        style={{
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.015)",
+        }}
       >
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8">
-            <Logo />
-            <nav className="flex flex-wrap gap-5 text-sm" style={{ color: "var(--text-3)" }}>
+            <a href="/" aria-label="AuditCrédito"><Logo /></a>
+            <nav className="flex flex-wrap gap-5">
               {[
                 { label: "Fazer análise", href: "/auditoria" },
                 { label: "Privacidade", href: "/politica-de-privacidade" },
                 { label: "Termos de Uso", href: "/termos-de-uso" },
                 { label: "Suporte", href: "mailto:suporte@auditcredito.com.br" },
               ].map(({ label, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  className="footer-link"
-                >
-                  {label}
-                </a>
+                <a key={label} href={href} className="footer-link-dk">{label}</a>
               ))}
             </nav>
           </div>
 
-          <div className="h-divider mb-6" />
+          <div className="h-divider-dark mb-6" />
 
           <div className="space-y-2">
-            <p className="text-xs leading-relaxed" style={{ color: "var(--text-4)" }}>
-              <strong style={{ color: "var(--text-3)" }}>Aviso legal:</strong> O AuditCrédito é uma
-              ferramenta educacional independente. As análises são informativas e baseadas em dados
-              públicos do Banco Central do Brasil. Não constituem parecer jurídico, financeiro ou
-              legal. Para contestações formais, consulte um advogado especializado em direito do
-              consumidor.
+            <p className="text-xs leading-relaxed" style={{ color: "rgba(241,245,249,0.22)" }}>
+              <strong style={{ color: "rgba(241,245,249,0.38)" }}>Aviso legal:</strong>{" "}
+              O AuditCrédito é uma ferramenta educacional independente. As análises são informativas e baseadas em
+              dados públicos do Banco Central do Brasil. Não constituem parecer jurídico, financeiro ou legal.
+              Para contestações formais, consulte um advogado especializado em direito do consumidor.
             </p>
-            <p className="text-xs" style={{ color: "var(--text-4)" }}>
-              Dados: Banco Central do Brasil — SGS (api.bcb.gov.br) &nbsp;·&nbsp; Garantia de 7
-              dias &nbsp;·&nbsp; suporte@auditcredito.com.br &nbsp;·&nbsp; © {new Date().getFullYear()} AuditCrédito
+            <p className="text-xs" style={{ color: "rgba(241,245,249,0.18)" }}>
+              Dados: Banco Central do Brasil — SGS (api.bcb.gov.br)&nbsp;·&nbsp;
+              Garantia de 7 dias&nbsp;·&nbsp;
+              suporte@auditcredito.com.br&nbsp;·&nbsp;
+              © {new Date().getFullYear()} AuditCrédito
             </p>
           </div>
         </div>
