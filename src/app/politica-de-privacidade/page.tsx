@@ -26,7 +26,14 @@ export default function PoliticaPrivacidadePage() {
         <div className="bg-white rounded-xl border border-gray-200 p-8 space-y-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Política de Privacidade</h1>
-            <p className="text-sm text-gray-500">Última atualização: {new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })}</p>
+            <p className="text-sm text-gray-500">
+              Última atualização:{" "}
+              {new Date().toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
           </div>
 
           <section className="space-y-3">
@@ -132,6 +139,73 @@ export default function PoliticaPrivacidadePage() {
                 privacidade@auditcredito.com.br
               </a>
             </p>
+          </section>
+
+          {/* ── Recursos externos (centralizado aqui) ── */}
+          <section className="space-y-4 pt-4 border-t border-gray-100">
+            <h2 className="text-base font-semibold text-gray-900">10. Canais de defesa do consumidor</h2>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Se você identificar cobranças indevidas ou quiser contestar formalmente uma instituição financeira,
+              os canais oficiais gratuitos são:
+            </p>
+            <ul className="text-sm text-gray-700 space-y-3">
+              <li className="flex gap-2 items-start">
+                <span className="text-gray-400 mt-0.5">•</span>
+                <span>
+                  <strong>consumidor.gov.br</strong> — Plataforma oficial do Ministério da Justiça para reclamações contra empresas.{" "}
+                  <a
+                    href="https://www.consumidor.gov.br/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
+                    www.consumidor.gov.br
+                  </a>
+                </span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-gray-400 mt-0.5">•</span>
+                <span>
+                  <strong>PROCON</strong> — Órgão de defesa do consumidor do seu estado. Para encontrar o PROCON mais próximo:{" "}
+                  <a
+                    href="https://www.consumidor.gov.br/pages/conteudo/publico/5"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
+                    consumidor.gov.br/procon
+                  </a>
+                </span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-gray-400 mt-0.5">•</span>
+                <span>
+                  <strong>Ouvidoria do Banco Central</strong> — Para reclamações contra instituições financeiras não resolvidas diretamente com o banco.{" "}
+                  <a
+                    href="https://www.bcb.gov.br/acessoinformacao/ouvidoria"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
+                    bcb.gov.br/acessoinformacao/ouvidoria
+                  </a>
+                </span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-gray-400 mt-0.5">•</span>
+                <span>
+                  <strong>Calculadora do Cidadão — BCB</strong> — Para verificar cálculos de juros compostos por conta própria.{" "}
+                  <a
+                    href="https://www3.bcb.gov.br/CALCJUROS/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline break-all"
+                  >
+                    bcb.gov.br/calculadora
+                  </a>
+                </span>
+              </li>
+            </ul>
           </section>
 
           <div className="pt-4 border-t border-gray-100">
