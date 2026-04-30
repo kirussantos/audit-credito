@@ -1,7 +1,9 @@
 /* ─── Ícones inline reutilizáveis ─────────────────────────────────────────── */
-function Icon({ path, cls = "w-5 h-5" }: { path: string; cls?: string }) {
+import type { CSSProperties } from "react";
+
+function Icon({ path, cls = "w-5 h-5", style }: { path: string; cls?: string; style?: CSSProperties }) {
   return (
-    <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className={cls} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d={path} />
     </svg>
   );
@@ -226,7 +228,7 @@ export default function Home() {
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: "var(--surface-3)" }}
                     >
-                      <Icon path={icon} cls="w-5 h-5" style={{ color: "var(--blue)" } as React.CSSProperties} />
+                      <Icon path={icon} cls="w-5 h-5" style={{ color: "var(--blue)" }} />
                     </span>
                     <span
                       className="text-4xl font-bold leading-none"
