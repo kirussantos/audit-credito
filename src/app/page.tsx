@@ -48,7 +48,7 @@ function Logo() {
         className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ background: "linear-gradient(135deg, #00D46A22 0%, #00D46A44 100%)", border: "1px solid rgba(0,212,106,0.3)" }}
       >
-        <I d={LOGO_D} c="w-4 h-4" style={{ color: "#00D46A" } />
+        <I d={LOGO_D} c="w-4 h-4" style={{ color: "#00D46A" }} />
       </span>
       <span className="font-bold text-base tracking-tight" style={{ color: "#F1F5F9" }}>
         AuditCrédito
@@ -365,7 +365,7 @@ export default function Home() {
                       {body}
                     </p>
                     <div className="flex items-center gap-2 mt-3">
-                      <I d={icon} c="w-4 h-4 flex-shrink-0" style={{ color: "#00D46A" } />
+                      <I d={icon} c="w-4 h-4 flex-shrink-0" style={{ color: "#00D46A" }} />
                     </div>
                   </div>
                 </div>
@@ -428,7 +428,7 @@ export default function Home() {
                   ].map(({ icon, title, body }) => (
                     <div key={title} className="feat-row">
                       <div className="feat-check feat-check-green">
-                        <I d="M5 13l4 4L19 7" c="w-3 h-3" style={{ color: "#00D46A" } sw={2.5} />
+                        <I d="M5 13l4 4L19 7" c="w-3 h-3" style={{ color: "#00D46A" }} sw={2.5} />
                       </div>
                       <div>
                         <p className="text-sm font-semibold" style={{ color: "#F1F5F9" }}>{title}</p>
@@ -464,7 +464,7 @@ export default function Home() {
                   ].map(({ title, body }) => (
                     <div key={title} className="feat-row">
                       <div className="feat-check feat-check-blue">
-                        <I d="M5 13l4 4L19 7" c="w-3 h-3" style={{ color: "#4B8EFF" } sw={2.5} />
+                        <I d="M5 13l4 4L19 7" c="w-3 h-3" style={{ color: "#4B8EFF" }} sw={2.5} />
                       </div>
                       <div>
                         <p className="text-sm font-semibold" style={{ color: "#F1F5F9" }}>{title}</p>
