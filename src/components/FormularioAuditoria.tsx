@@ -20,29 +20,94 @@ function delay(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-function CampoErro({ msg }: { msg?: string }) {
-  if (!msg) return null;
-  return <p className="mt-1 text-xs text-red-600">{msg}</p>;
-}
+/* ─── Sub-componentes de formulário ─────────────────────────────────────────── */
 
-function Label({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) {
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null;
   return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
-      {children}
-    </label>
+    <p className="mt-1.5 text-xs font-medium flex items-center gap-1" style={{ color: "var(--danger)" }}>
+      <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      {msg}
+    </p>
   );
 }
 
-const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 " +
-  "placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E86C1] focus:border-transparent " +
-  "transition-colors bg-white";
+function FieldLabel({ htmlFor, children, hint }: { htmlFor: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="flex items-center justify-between mb-1.5">
+      <label
+        htmlFor={htmlFor}
+        className="block text-sm font-semibold"
+        style={{ color: "var(--text-2)" }}
+      >
+        {children}
+      </label>
+      {hint && (
+        <span className="text-xs" style={{ color: "var(--text-4)" }}>
+          {hint}
+        </span>
+      )}
+    </div>
+  );
+}
 
-const inputErroClass =
-  "w-full rounded-lg border border-red-400 px-3 py-2.5 text-sm text-gray-900 " +
-  "placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent " +
-  "transition-colors bg-white";
+/* ─── Indicador de etapas ───────────────────────────────────────────────────── */
+function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
+  return (
+    <div className="flex items-center mb-8">
+      {[
+        { n: 1, label: "Dados do crédito" },
+        { n: 2, label: "Seus dados" },
+      ].map(({ n, label }, i) => {
+        const done = etapa > n;
+        const active = etapa === n;
+        return (
+          <div key={n} className="flex items-center" style={{ flex: i === 0 ? "initial" : 1 }}>
+            {/* Connector line */}
+            {i > 0 && (
+              <div
+                className="h-0.5 flex-1 mx-3 transition-all duration-500"
+                style={{ background: done || active ? "var(--navy-mid)" : "var(--bdr-2)" }}
+              />
+            )}
+            <div className="flex items-center gap-2">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 flex-shrink-0"
+                style={{
+                  background: done
+                    ? "var(--cta)"
+                    : active
+                    ? "var(--navy-mid)"
+                    : "var(--bdr)",
+                  color: done || active ? "#fff" : "var(--text-4)",
+                  boxShadow: active ? "0 0 0 3px rgba(30,58,95,0.2)" : "none",
+                }}
+              >
+                {done ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  n
+                )}
+              </div>
+              <span
+                className="text-sm font-medium hidden sm:block"
+                style={{ color: active ? "var(--navy-mid)" : done ? "var(--cta)" : "var(--text-4)" }}
+              >
+                {label}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
+/* ─── Componente principal ──────────────────────────────────────────────────── */
 export default function FormularioAuditoria() {
   const router = useRouter();
   const [etapa, setEtapa] = useState<1 | 2>(1);
@@ -114,204 +179,275 @@ export default function FormularioAuditoria() {
       <BarraProgresso visivel={processando} etapa={etapaProcessamento} />
 
       <div className="w-full max-w-xl mx-auto">
-        {/* Indicador de etapas */}
-        <div className="flex items-center gap-3 mb-8">
-          {[1, 2].map((n) => (
-            <div key={n} className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
-                style={{
-                  backgroundColor: etapa >= n ? "#1B4F72" : "#E5E7EB",
-                  color: etapa >= n ? "#fff" : "#6B7280",
-                }}
-              >
-                {n}
-              </div>
-              <span className="text-sm text-gray-600 hidden sm:block">
-                {n === 1 ? "Dados do crédito" : "Seus dados"}
-              </span>
-              {n < 2 && <div className="w-8 h-px bg-gray-300 mx-1" />}
-            </div>
-          ))}
-        </div>
+        <StepIndicator etapa={etapa} />
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          {/* ── ETAPA 1: Dados do crédito ── */}
+
+          {/* ── ETAPA 1: Dados do crédito ─────────────────────────────────── */}
           {etapa === 1 && (
-            <div className="space-y-5">
+            <div className="space-y-5 anim-fade">
+
               {/* Tipo de crédito */}
               <div>
-                <Label htmlFor="tipoCredito">Tipo de crédito</Label>
-                <select
-                  id="tipoCredito"
-                  {...register("tipoCredito")}
-                  className={errors.tipoCredito ? inputErroClass : inputClass}
-                >
-                  <option value="">Selecione o tipo...</option>
-                  {TIPOS_CREDITO_OPTIONS.map((op) => (
-                    <option key={op.value} value={op.value}>
-                      {op.label}
-                    </option>
-                  ))}
-                </select>
-                <CampoErro msg={errors.tipoCredito?.message} />
+                <FieldLabel htmlFor="tipoCredito">Tipo de crédito</FieldLabel>
+                <div className="inp-wrap">
+                  <select
+                    id="tipoCredito"
+                    {...register("tipoCredito")}
+                    className={`inp select-inp ${errors.tipoCredito ? "err" : ""}`}
+                  >
+                    <option value="">Selecione o tipo de crédito...</option>
+                    {TIPOS_CREDITO_OPTIONS.map((op) => (
+                      <option key={op.value} value={op.value}>
+                        {op.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <FieldError msg={errors.tipoCredito?.message} />
               </div>
 
               {/* Banco / Instituição */}
               <div>
-                <Label htmlFor="instituicao">Banco ou instituição financeira</Label>
-                <input
-                  id="instituicao"
-                  type="text"
-                  placeholder="Ex: Banco do Brasil, Nubank, Itaú..."
-                  {...register("instituicao")}
-                  className={errors.instituicao ? inputErroClass : inputClass}
-                />
-                <CampoErro msg={errors.instituicao?.message} />
+                <FieldLabel htmlFor="instituicao" hint="Ex: Nubank, Itaú, Bradesco...">
+                  Banco ou instituição financeira
+                </FieldLabel>
+                <div className="inp-wrap">
+                  <div className="inp-pfx">
+                    <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                  </div>
+                  <input
+                    id="instituicao"
+                    type="text"
+                    placeholder="Banco do Brasil"
+                    {...register("instituicao")}
+                    className={`inp has-pfx ${errors.instituicao ? "err" : ""}`}
+                  />
+                </div>
+                <FieldError msg={errors.instituicao?.message} />
               </div>
 
               {/* Valor da dívida + Taxa em linha */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="valorDivida">Valor da dívida (R$)</Label>
-                  <input
-                    id="valorDivida"
-                    type="number"
-                    step="0.01"
-                    min="100"
-                    placeholder="5000.00"
-                    {...register("valorDivida", { valueAsNumber: true })}
-                    className={errors.valorDivida ? inputErroClass : inputClass}
-                  />
-                  <CampoErro msg={errors.valorDivida?.message} />
+                  <FieldLabel htmlFor="valorDivida">Valor da dívida</FieldLabel>
+                  <div className="inp-wrap">
+                    <span className="inp-pfx font-semibold text-xs" style={{ color: "var(--text-3)" }}>R$</span>
+                    <input
+                      id="valorDivida"
+                      type="number"
+                      step="0.01"
+                      min="100"
+                      placeholder="5.000,00"
+                      {...register("valorDivida", { valueAsNumber: true })}
+                      className={`inp has-pfx ${errors.valorDivida ? "err" : ""}`}
+                    />
+                  </div>
+                  <FieldError msg={errors.valorDivida?.message} />
                 </div>
 
                 <div>
-                  <Label htmlFor="taxaJurosMensal">Taxa cobrada (% a.m.)</Label>
-                  <input
-                    id="taxaJurosMensal"
-                    type="number"
-                    step="0.01"
-                    min="0.1"
-                    max="30"
-                    placeholder="4.50"
-                    {...register("taxaJurosMensal", { valueAsNumber: true })}
-                    className={errors.taxaJurosMensal ? inputErroClass : inputClass}
-                  />
-                  <CampoErro msg={errors.taxaJurosMensal?.message} />
+                  <FieldLabel htmlFor="taxaJurosMensal">Taxa cobrada</FieldLabel>
+                  <div className="inp-wrap">
+                    <input
+                      id="taxaJurosMensal"
+                      type="number"
+                      step="0.01"
+                      min="0.1"
+                      max="30"
+                      placeholder="4,50"
+                      {...register("taxaJurosMensal", { valueAsNumber: true })}
+                      className={`inp has-sfx ${errors.taxaJurosMensal ? "err" : ""}`}
+                    />
+                    <span className="inp-sfx text-xs font-semibold">% a.m.</span>
+                  </div>
+                  <FieldError msg={errors.taxaJurosMensal?.message} />
                 </div>
               </div>
 
               {/* Data do contrato + Período em linha */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="dataContrato">Mês/ano do contrato</Label>
-                  <input
-                    id="dataContrato"
-                    type="text"
-                    placeholder="MM/AAAA"
-                    maxLength={7}
-                    {...register("dataContrato")}
-                    className={errors.dataContrato ? inputErroClass : inputClass}
-                  />
-                  <CampoErro msg={errors.dataContrato?.message} />
+                  <FieldLabel htmlFor="dataContrato" hint="MM/AAAA">
+                    Mês/ano do contrato
+                  </FieldLabel>
+                  <div className="inp-wrap">
+                    <div className="inp-pfx">
+                      <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <input
+                      id="dataContrato"
+                      type="text"
+                      placeholder="01/2023"
+                      maxLength={7}
+                      {...register("dataContrato")}
+                      className={`inp has-pfx ${errors.dataContrato ? "err" : ""}`}
+                    />
+                  </div>
+                  <FieldError msg={errors.dataContrato?.message} />
                 </div>
 
                 <div>
-                  <Label htmlFor="mesesAtraso">Período (meses)</Label>
-                  <input
-                    id="mesesAtraso"
-                    type="number"
-                    step="1"
-                    min="1"
-                    max="360"
-                    placeholder="24"
-                    {...register("mesesAtraso", { valueAsNumber: true })}
-                    className={errors.mesesAtraso ? inputErroClass : inputClass}
-                  />
-                  <CampoErro msg={errors.mesesAtraso?.message} />
+                  <FieldLabel htmlFor="mesesAtraso" hint="1 a 360">
+                    Período (meses)
+                  </FieldLabel>
+                  <div className="inp-wrap">
+                    <input
+                      id="mesesAtraso"
+                      type="number"
+                      step="1"
+                      min="1"
+                      max="360"
+                      placeholder="24"
+                      {...register("mesesAtraso", { valueAsNumber: true })}
+                      className={`inp has-sfx ${errors.mesesAtraso ? "err" : ""}`}
+                    />
+                    <span className="inp-sfx text-xs font-semibold">meses</span>
+                  </div>
+                  <FieldError msg={errors.mesesAtraso?.message} />
                 </div>
               </div>
 
               {/* Botão avançar */}
-              <button
-                type="button"
-                onClick={avancarEtapa}
-                className="w-full py-3 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90 active:opacity-80"
-                style={{ backgroundColor: "#1B4F72" }}
-              >
-                Continuar →
-              </button>
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={avancarEtapa}
+                  className="btn-navy w-full py-3.5 text-base"
+                >
+                  Continuar
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Micro-reassurance */}
+              <p className="text-xs text-center" style={{ color: "var(--text-4)" }}>
+                Nenhum CPF ou dado bancário é solicitado
+              </p>
             </div>
           )}
 
-          {/* ── ETAPA 2: Dados de contato ── */}
+          {/* ── ETAPA 2: Dados de contato ─────────────────────────────────── */}
           {etapa === 2 && (
-            <div className="space-y-5">
-              <div>
-                <Label htmlFor="nome">Seu nome completo</Label>
-                <input
-                  id="nome"
-                  type="text"
-                  placeholder="Maria da Silva"
-                  {...register("nome")}
-                  className={errors.nome ? inputErroClass : inputClass}
-                />
-                <CampoErro msg={errors.nome?.message} />
-              </div>
+            <div className="space-y-5 anim-fade">
 
-              <div>
-                <Label htmlFor="email">Seu e-mail</Label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="maria@email.com"
-                  {...register("email")}
-                  className={errors.email ? inputErroClass : inputClass}
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Usamos apenas para entregar seu relatório.
+              {/* Mini-resumo do que está sendo analisado */}
+              <div
+                className="rounded-xl px-4 py-3 flex items-center gap-3"
+                style={{ background: "var(--surface-3)", border: "1px solid var(--bdr)" }}
+              >
+                <svg className="w-4 h-4 flex-shrink-0" style={{ color: "var(--blue)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-xs" style={{ color: "var(--text-3)" }}>
+                  Dados do crédito preenchidos. Agora só precisamos saber onde entregar o resultado.
                 </p>
-                <CampoErro msg={errors.email?.message} />
               </div>
 
-              {/* Consentimento LGPD */}
-              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <label className="flex items-start gap-3 cursor-pointer">
+              {/* Nome */}
+              <div>
+                <FieldLabel htmlFor="nome">Seu nome completo</FieldLabel>
+                <div className="inp-wrap">
+                  <div className="inp-pfx">
+                    <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
                   <input
-                    type="checkbox"
-                    checked={consentimento}
-                    onChange={(e) => {
-                      setConsentimento(e.target.checked);
-                      if (e.target.checked) setErroConsentimento(false);
-                    }}
-                    className="mt-0.5 flex-shrink-0 w-4 h-4 rounded border-gray-300 accent-[#1B4F72]"
+                    id="nome"
+                    type="text"
+                    placeholder="Maria da Silva"
+                    {...register("nome")}
+                    className={`inp has-pfx ${errors.nome ? "err" : ""}`}
                   />
-                  <span className="text-xs text-gray-600 leading-relaxed">
+                </div>
+                <FieldError msg={errors.nome?.message} />
+              </div>
+
+              {/* E-mail */}
+              <div>
+                <FieldLabel htmlFor="email">Seu e-mail</FieldLabel>
+                <div className="inp-wrap">
+                  <div className="inp-pfx">
+                    <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="maria@email.com"
+                    {...register("email")}
+                    className={`inp has-pfx ${errors.email ? "err" : ""}`}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs" style={{ color: "var(--text-4)" }}>
+                  Usado apenas para entregar o relatório — sem spam, jamais.
+                </p>
+                <FieldError msg={errors.email?.message} />
+              </div>
+
+              {/* Consentimento LGPD — visual melhorado */}
+              <div
+                className="rounded-xl p-4"
+                style={{
+                  background: erroConsentimento ? "#FEF2F2" : "var(--surface-2)",
+                  border: `1px solid ${erroConsentimento ? "var(--danger-bdr)" : "var(--bdr)"}`,
+                  transition: "background 0.2s, border-color 0.2s",
+                }}
+              >
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <div className="relative flex-shrink-0 mt-0.5">
+                    <input
+                      type="checkbox"
+                      id="consentimento"
+                      checked={consentimento}
+                      onChange={(e) => {
+                        setConsentimento(e.target.checked);
+                        if (e.target.checked) setErroConsentimento(false);
+                      }}
+                      className="sr-only"
+                    />
+                    <div
+                      className="w-5 h-5 rounded flex items-center justify-center border-2 transition-all duration-150"
+                      style={{
+                        background: consentimento ? "var(--cta)" : "white",
+                        borderColor: consentimento ? "var(--cta)" : "var(--bdr-2)",
+                      }}
+                    >
+                      {consentimento && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
                     Concordo com o uso dos dados informados (nome, e-mail e dados da dívida)
                     exclusivamente para gerar esta análise. Nenhum CPF ou dado bancário é coletado.
                     Consulte a{" "}
-                    <a
-                      href="/politica-de-privacidade"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#2E86C1] underline"
-                    >
+                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer"
+                      className="underline font-medium" style={{ color: "var(--blue)" }}>
                       Política de Privacidade
-                    </a>
-                    {" "}e os{" "}
-                    <a
-                      href="/termos-de-uso"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#2E86C1] underline"
-                    >
+                    </a>{" "}
+                    e os{" "}
+                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer"
+                      className="underline font-medium" style={{ color: "var(--blue)" }}>
                       Termos de Uso
                     </a>.
                   </span>
                 </label>
                 {erroConsentimento && (
-                  <p className="mt-2 text-xs text-red-600">
+                  <p className="mt-2 text-xs font-medium flex items-center gap-1" style={{ color: "var(--danger)" }}>
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     Você precisa aceitar os termos para continuar.
                   </p>
                 )}
@@ -319,8 +455,14 @@ export default function FormularioAuditoria() {
 
               {/* Erro de envio */}
               {erroEnvio && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {erroEnvio}
+                <div
+                  className="rounded-xl px-4 py-3 flex items-start gap-3 text-sm"
+                  style={{ background: "var(--danger-bg)", border: "1px solid var(--danger-bdr)" }}
+                >
+                  <svg className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "var(--danger)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span style={{ color: "var(--danger)" }}>{erroEnvio}</span>
                 </div>
               )}
 
@@ -329,16 +471,35 @@ export default function FormularioAuditoria() {
                 <button
                   type="button"
                   onClick={() => setEtapa(1)}
-                  className="flex-1 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors"
+                  className="btn-ghost flex-1"
+                  disabled={processando}
                 >
-                  ← Voltar
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Voltar
                 </button>
                 <button
                   type="submit"
-                  className="flex-[2] py-3 rounded-lg text-white font-semibold text-sm transition-opacity hover:opacity-90 active:opacity-80"
-                  style={{ backgroundColor: "#1B4F72" }}
+                  className="btn-cta flex-[2] py-3.5 text-sm"
+                  disabled={processando}
                 >
-                  Analisar minha dívida
+                  {processando ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Analisando...
+                    </>
+                  ) : (
+                    <>
+                      Analisar minha dívida
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </>
+                  )}
                 </button>
               </div>
             </div>

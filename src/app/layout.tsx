@@ -1,33 +1,32 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const ibm = IBM_Plex_Sans({
+  variable: "--font-ibm",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "AuditCrédito — Compare sua taxa de juros com o Banco Central",
+  title: "AuditCrédito — Descubra se o banco está te cobrando juros acima do mercado",
   description:
-    "Ferramenta gratuita que compara a taxa do seu empréstimo com os dados oficiais do Banco Central do Brasil (BCB/SGS). Análise informativa e educacional.",
+    "Compare a taxa do seu empréstimo com os dados oficiais do Banco Central em segundos. Análise grátis, sem CPF, sem cadastro.",
+  openGraph: {
+    title: "AuditCrédito — Seus juros estão acima da média?",
+    description:
+      "Ferramenta gratuita que compara a taxa do seu crédito com os dados do Banco Central do Brasil.",
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="pt-BR" className={`${ibm.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
