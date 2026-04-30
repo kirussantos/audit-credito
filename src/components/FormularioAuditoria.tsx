@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -20,8 +20,7 @@ function delay(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-/* ─── Sub-componentes de formulário ─────────────────────────────────────────── */
-
+/* ─── Helpers ────────────────────────────────────────────────────────────── */
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
   return (
@@ -37,35 +36,23 @@ function FieldError({ msg }: { msg?: string }) {
 function FieldLabel({ htmlFor, children, hint }: { htmlFor: string; children: React.ReactNode; hint?: string }) {
   return (
     <div className="flex items-center justify-between mb-1.5">
-      <label
-        htmlFor={htmlFor}
-        className="block text-sm font-semibold"
-        style={{ color: "var(--text-2)" }}
-      >
+      <label htmlFor={htmlFor} className="block text-sm font-semibold" style={{ color: "var(--text-2)" }}>
         {children}
       </label>
-      {hint && (
-        <span className="text-xs" style={{ color: "var(--text-4)" }}>
-          {hint}
-        </span>
-      )}
+      {hint && <span className="text-xs" style={{ color: "var(--text-4)" }}>{hint}</span>}
     </div>
   );
 }
 
-/* ─── Indicador de etapas ───────────────────────────────────────────────────── */
+/* ─── StepIndicator ─────────────────────────────────────────────────────── */
 function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
   return (
     <div className="flex items-center mb-8">
-      {[
-        { n: 1, label: "Dados do crédito" },
-        { n: 2, label: "Seus dados" },
-      ].map(({ n, label }, i) => {
+      {[{ n: 1, label: "Dados do crédito" }, { n: 2, label: "Seus dados" }].map(({ n, label }, i) => {
         const done = etapa > n;
         const active = etapa === n;
         return (
           <div key={n} className="flex items-center" style={{ flex: i === 0 ? "initial" : 1 }}>
-            {/* Connector line */}
             {i > 0 && (
               <div
                 className="h-0.5 flex-1 mx-3 transition-all duration-500"
@@ -76,11 +63,7 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 flex-shrink-0"
                 style={{
-                  background: done
-                    ? "var(--cta)"
-                    : active
-                    ? "var(--navy-mid)"
-                    : "var(--bdr)",
+                  background: done ? "var(--cta)" : active ? "var(--navy-mid)" : "var(--bdr)",
                   color: done || active ? "#fff" : "var(--text-4)",
                   boxShadow: active ? "0 0 0 3px rgba(30,58,95,0.2)" : "none",
                 }}
@@ -89,14 +72,9 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                ) : (
-                  n
-                )}
+                ) : n}
               </div>
-              <span
-                className="text-sm font-medium hidden sm:block"
-                style={{ color: active ? "var(--navy-mid)" : done ? "var(--cta)" : "var(--text-4)" }}
-              >
+              <span className="text-sm font-medium hidden sm:block" style={{ color: active ? "var(--navy-mid)" : done ? "var(--cta)" : "var(--text-4)" }}>
                 {label}
               </span>
             </div>
@@ -107,7 +85,205 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
   );
 }
 
-/* ─── Componente principal ──────────────────────────────────────────────────── */
+/* ─── MonthPicker ───────────────────────────────────────────────────────── */
+const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+function MonthPicker({
+  value,
+  onChange,
+  hasError,
+  id,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  hasError?: boolean;
+  id: string;
+}) {
+  const anoAtual = new Date().getFullYear();
+  const mesAtual = new Date().getMonth() + 1;
+
+  const [open, setOpen] = useState(false);
+  const [ano, setAno] = useState<number>(() => {
+    if (value && /^\d{2}\/\d{4}$/.test(value)) return parseInt(value.split("/")[1]);
+    return anoAtual;
+  });
+
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  /* Fecha ao clicar fora */
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const mesSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[0]) : null;
+  const anoSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[1]) : null;
+
+  const displayValue = mesSel && anoSel
+    ? `${MESES[mesSel - 1]} / ${anoSel}`
+    : "";
+
+  function selectMes(mes: number) {
+    const mm = String(mes).padStart(2, "0");
+    onChange(`${mm}/${ano}`);
+    setOpen(false);
+  }
+
+  function isDisabled(mes: number) {
+    return ano === anoAtual && mes > mesAtual;
+  }
+
+  function isSelected(mes: number) {
+    return mes === mesSel && ano === anoSel;
+  }
+
+  return (
+    <div ref={wrapRef} className="relative">
+      {/* Trigger button */}
+      <button
+        id={id}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`inp has-pfx has-sfx text-left cursor-pointer ${hasError ? "err" : ""}`}
+        style={{ color: displayValue ? "var(--text)" : "var(--text-4)" }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {displayValue || "Selecione mês / ano"}
+      </button>
+
+      {/* Calendar icon (prefix) */}
+      <div className="inp-pfx pointer-events-none">
+        <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+
+      {/* Chevron (suffix) */}
+      <div className="inp-sfx pointer-events-none">
+        <svg
+          className="w-4 h-4 transition-transform duration-200"
+          style={{ color: "var(--text-4)", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div
+          role="listbox"
+          className="absolute left-0 z-50 mt-1.5 w-64 rounded-2xl overflow-hidden"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--bdr-2)",
+            boxShadow: "0 12px 40px -4px rgba(13,27,42,0.18), 0 4px 12px rgba(0,0,0,0.08)",
+            top: "100%",
+          }}
+        >
+          {/* Year navigation */}
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ borderBottom: "1px solid var(--bdr)", background: "var(--surface-2)" }}
+          >
+            <button
+              type="button"
+              onClick={() => setAno((y) => Math.max(1990, y - 1))}
+              disabled={ano <= 1990}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                color: ano <= 1990 ? "var(--text-4)" : "var(--navy-mid)",
+                background: ano <= 1990 ? "transparent" : "var(--surface-3)",
+              }}
+              aria-label="Ano anterior"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <span className="font-bold text-base tabular-nums" style={{ color: "var(--text)" }}>
+              {ano}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setAno((y) => Math.min(anoAtual, y + 1))}
+              disabled={ano >= anoAtual}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+              style={{
+                color: ano >= anoAtual ? "var(--text-4)" : "var(--navy-mid)",
+                background: ano >= anoAtual ? "transparent" : "var(--surface-3)",
+              }}
+              aria-label="Próximo ano"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Month grid */}
+          <div className="grid grid-cols-3 gap-1.5 p-3">
+            {MESES.map((m, i) => {
+              const mes = i + 1;
+              const sel = isSelected(mes);
+              const dis = isDisabled(mes);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="option"
+                  aria-selected={sel}
+                  disabled={dis}
+                  onClick={() => selectMes(mes)}
+                  className="rounded-xl py-2 text-sm font-semibold transition-all duration-150"
+                  style={{
+                    background: sel
+                      ? "var(--navy-mid)"
+                      : "transparent",
+                    color: sel
+                      ? "#fff"
+                      : dis
+                      ? "var(--text-4)"
+                      : "var(--text-2)",
+                    cursor: dis ? "not-allowed" : "pointer",
+                    border: sel ? "none" : "1px solid transparent",
+                  }}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick shortcut: limpar */}
+          {value && (
+            <div style={{ borderTop: "1px solid var(--bdr)", padding: "0.5rem 0.75rem" }}>
+              <button
+                type="button"
+                onClick={() => { onChange(""); setOpen(false); }}
+                className="w-full text-center text-xs py-1.5 rounded-lg transition-colors"
+                style={{ color: "var(--text-3)", background: "transparent" }}
+              >
+                Limpar seleção
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Componente principal ──────────────────────────────────────────────── */
 export default function FormularioAuditoria() {
   const router = useRouter();
   const [etapa, setEtapa] = useState<1 | 2>(1);
@@ -121,11 +297,15 @@ export default function FormularioAuditoria() {
     register,
     handleSubmit,
     trigger,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FormularioData>({
     resolver: zodResolver(schemaFormulario),
     mode: "onBlur",
   });
+
+  const dataContrato = watch("dataContrato") ?? "";
 
   const avancarEtapa = async () => {
     const valido = await trigger([...CAMPOS_ETAPA_1]);
@@ -133,10 +313,7 @@ export default function FormularioAuditoria() {
   };
 
   const onSubmit = async (data: FormularioData) => {
-    if (!consentimento) {
-      setErroConsentimento(true);
-      return;
-    }
+    if (!consentimento) { setErroConsentimento(true); return; }
     setErroConsentimento(false);
     setProcessando(true);
     setEtapaProcessamento(1);
@@ -168,9 +345,7 @@ export default function FormularioAuditoria() {
     } catch (err) {
       setProcessando(false);
       setEtapaProcessamento(0);
-      setErroEnvio(
-        err instanceof Error ? err.message : "Erro desconhecido. Tente novamente."
-      );
+      setErroEnvio(err instanceof Error ? err.message : "Erro desconhecido. Tente novamente.");
     }
   };
 
@@ -183,7 +358,7 @@ export default function FormularioAuditoria() {
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
 
-          {/* ── ETAPA 1: Dados do crédito ─────────────────────────────────── */}
+          {/* ── ETAPA 1 ──────────────────────────────────────────────── */}
           {etapa === 1 && (
             <div className="space-y-5 anim-fade">
 
@@ -198,16 +373,14 @@ export default function FormularioAuditoria() {
                   >
                     <option value="">Selecione o tipo de crédito...</option>
                     {TIPOS_CREDITO_OPTIONS.map((op) => (
-                      <option key={op.value} value={op.value}>
-                        {op.label}
-                      </option>
+                      <option key={op.value} value={op.value}>{op.label}</option>
                     ))}
                   </select>
                 </div>
                 <FieldError msg={errors.tipoCredito?.message} />
               </div>
 
-              {/* Banco / Instituição */}
+              {/* Banco */}
               <div>
                 <FieldLabel htmlFor="instituicao" hint="Ex: Nubank, Itaú, Bradesco...">
                   Banco ou instituição financeira
@@ -229,7 +402,7 @@ export default function FormularioAuditoria() {
                 <FieldError msg={errors.instituicao?.message} />
               </div>
 
-              {/* Valor da dívida + Taxa em linha */}
+              {/* Valor + Taxa */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <FieldLabel htmlFor="valorDivida">Valor da dívida</FieldLabel>
@@ -267,25 +440,23 @@ export default function FormularioAuditoria() {
                 </div>
               </div>
 
-              {/* Data do contrato + Período em linha */}
+              {/* Data do contrato + Período */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <FieldLabel htmlFor="dataContrato" hint="MM/AAAA">
-                    Mês/ano do contrato
-                  </FieldLabel>
+                  {/* Hidden input for RHF validation */}
+                  <input
+                    type="hidden"
+                    {...register("dataContrato")}
+                  />
+                  <FieldLabel htmlFor="dataContrato">Mês/ano do contrato</FieldLabel>
                   <div className="inp-wrap">
-                    <div className="inp-pfx">
-                      <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <input
+                    <MonthPicker
                       id="dataContrato"
-                      type="text"
-                      placeholder="01/2023"
-                      maxLength={7}
-                      {...register("dataContrato")}
-                      className={`inp has-pfx ${errors.dataContrato ? "err" : ""}`}
+                      value={dataContrato}
+                      onChange={(v) => {
+                        setValue("dataContrato", v, { shouldValidate: true, shouldDirty: true });
+                      }}
+                      hasError={!!errors.dataContrato}
                     />
                   </div>
                   <FieldError msg={errors.dataContrato?.message} />
@@ -312,13 +483,8 @@ export default function FormularioAuditoria() {
                 </div>
               </div>
 
-              {/* Botão avançar */}
               <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={avancarEtapa}
-                  className="btn-navy w-full py-3.5 text-base"
-                >
+                <button type="button" onClick={avancarEtapa} className="btn-navy w-full py-3.5 text-base">
                   Continuar
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -326,18 +492,16 @@ export default function FormularioAuditoria() {
                 </button>
               </div>
 
-              {/* Micro-reassurance */}
               <p className="text-xs text-center" style={{ color: "var(--text-4)" }}>
                 Nenhum CPF ou dado bancário é solicitado
               </p>
             </div>
           )}
 
-          {/* ── ETAPA 2: Dados de contato ─────────────────────────────────── */}
+          {/* ── ETAPA 2 ──────────────────────────────────────────────── */}
           {etapa === 2 && (
             <div className="space-y-5 anim-fade">
 
-              {/* Mini-resumo do que está sendo analisado */}
               <div
                 className="rounded-xl px-4 py-3 flex items-center gap-3"
                 style={{ background: "var(--surface-3)", border: "1px solid var(--bdr)" }}
@@ -346,7 +510,7 @@ export default function FormularioAuditoria() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-xs" style={{ color: "var(--text-3)" }}>
-                  Dados do crédito preenchidos. Agora só precisamos saber onde entregar o resultado.
+                  Dados do crédito preenchidos. Só precisamos saber onde entregar o resultado.
                 </p>
               </div>
 
@@ -393,7 +557,7 @@ export default function FormularioAuditoria() {
                 <FieldError msg={errors.email?.message} />
               </div>
 
-              {/* Consentimento LGPD — visual melhorado */}
+              {/* Consentimento LGPD */}
               <div
                 className="rounded-xl p-4"
                 style={{
@@ -429,16 +593,12 @@ export default function FormularioAuditoria() {
                     </div>
                   </div>
                   <span className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
-                    Concordo com o uso dos dados informados (nome, e-mail e dados da dívida)
-                    exclusivamente para gerar esta análise. Nenhum CPF ou dado bancário é coletado.
-                    Consulte a{" "}
-                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer"
-                      className="underline font-medium" style={{ color: "var(--blue)" }}>
+                    Concordo com o uso dos dados informados exclusivamente para gerar esta análise.
+                    Nenhum CPF ou dado bancário é coletado. Consulte a{" "}
+                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: "var(--blue)" }}>
                       Política de Privacidade
-                    </a>{" "}
-                    e os{" "}
-                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer"
-                      className="underline font-medium" style={{ color: "var(--blue)" }}>
+                    </a>{" "}e os{" "}
+                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: "var(--blue)" }}>
                       Termos de Uso
                     </a>.
                   </span>
@@ -468,22 +628,13 @@ export default function FormularioAuditoria() {
 
               {/* Botões */}
               <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setEtapa(1)}
-                  className="btn-ghost flex-1"
-                  disabled={processando}
-                >
+                <button type="button" onClick={() => setEtapa(1)} className="btn-ghost flex-1" disabled={processando}>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   Voltar
                 </button>
-                <button
-                  type="submit"
-                  className="btn-cta flex-[2] py-3.5 text-sm"
-                  disabled={processando}
-                >
+                <button type="submit" className="btn-cta flex-[2] py-3.5 text-sm" disabled={processando}>
                   {processando ? (
                     <>
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

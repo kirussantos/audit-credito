@@ -12,24 +12,37 @@ export default function ObrigadoConteudo() {
       {/* Confirmação de envio */}
       <div
         className="text-center py-6 px-4 rounded-2xl"
-        style={{ background: "var(--success-bg)", border: "1px solid var(--success-bdr)" }}
+        style={{
+          background: "rgba(0,212,106,0.08)",
+          border: "1px solid rgba(0,212,106,0.20)",
+        }}
       >
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: "var(--cta)" }}
+          style={{
+            background: "rgba(0,212,106,0.15)",
+            border: "2px solid rgba(0,212,106,0.35)",
+          }}
         >
-          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg
+            className="w-8 h-8"
+            style={{ color: "#00D46A" }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--text)", letterSpacing: "-0.01em" }}>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: "#FFFFFF", letterSpacing: "-0.01em" }}>
           Relatório enviado.
         </h1>
-        <p className="text-base leading-relaxed" style={{ color: "var(--text-2)" }}>
+        <p className="text-base leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
           {email ? (
             <>
               Em instantes você vai receber em{" "}
-              <strong style={{ color: "var(--text)" }}>{email}</strong>{" "}
+              <strong style={{ color: "#FFFFFF" }}>{email}</strong>{" "}
               o documento mais completo que já teve nas mãos para lidar com o banco.
             </>
           ) : (
@@ -44,21 +57,37 @@ export default function ObrigadoConteudo() {
       {/* Alerta de spam */}
       <div
         className="flex items-start gap-3 rounded-xl px-4 py-3.5"
-        style={{ background: "var(--warning-bg)", border: "1px solid var(--warning-bdr)" }}
+        style={{
+          background: "rgba(251,191,36,0.07)",
+          border: "1px solid rgba(251,191,36,0.18)",
+        }}
       >
-        <svg className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "var(--warning)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <svg
+          className="w-5 h-5 flex-shrink-0 mt-0.5"
+          style={{ color: "#FBBF24" }}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
         </svg>
         <div>
-          <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>
+          <p className="text-sm font-semibold mb-0.5" style={{ color: "#FFFFFF" }}>
             Não encontrou o e-mail?
           </p>
-          <p className="text-sm" style={{ color: "var(--text-2)" }}>
-            Verifique a pasta de <strong>spam</strong> ou <strong>lixo eletrônico</strong>.
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.60)" }}>
+            Verifique a pasta de{" "}
+            <strong style={{ color: "rgba(255,255,255,0.85)" }}>spam</strong> ou{" "}
+            <strong style={{ color: "rgba(255,255,255,0.85)" }}>lixo eletrônico</strong>.
             O remetente é{" "}
             <span
               className="text-xs font-mono px-1.5 py-0.5 rounded"
-              style={{ background: "rgba(0,0,0,0.06)", color: "var(--text-2)" }}
+              style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.70)" }}
             >
               noreply@auditcredito.com.br
             </span>
@@ -68,12 +97,15 @@ export default function ObrigadoConteudo() {
 
       {/* Próximos passos */}
       <div
-        className="rounded-2xl border p-5"
-        style={{ background: "var(--surface)", borderColor: "var(--bdr)" }}
+        className="rounded-2xl p-5"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
         <h2
           className="text-xs font-bold uppercase tracking-widest mb-4"
-          style={{ color: "var(--text-3)" }}
+          style={{ color: "rgba(255,255,255,0.40)" }}
         >
           Seus próximos passos
         </h2>
@@ -103,16 +135,20 @@ export default function ObrigadoConteudo() {
           ].map(({ n, title, body }) => (
             <div key={n} className="flex gap-3">
               <div
-                className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5"
-                style={{ background: "var(--navy-mid)" }}
+                className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
+                style={{
+                  background: "rgba(0,212,106,0.15)",
+                  border: "1px solid rgba(0,212,106,0.30)",
+                  color: "#00D46A",
+                }}
               >
                 {n}
               </div>
               <div>
-                <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>
+                <p className="text-sm font-semibold mb-0.5" style={{ color: "#FFFFFF" }}>
                   {title}
                 </p>
-                <p className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
                   {body}
                 </p>
               </div>
@@ -124,18 +160,21 @@ export default function ObrigadoConteudo() {
       {/* Garantia */}
       <div
         className="rounded-xl px-5 py-4 text-center"
-        style={{ background: "var(--surface-2)", border: "1px solid var(--bdr)" }}
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
       >
-        <p className="text-sm font-semibold mb-1" style={{ color: "var(--text)" }}>
+        <p className="text-sm font-semibold mb-1" style={{ color: "#FFFFFF" }}>
           Garantia de 7 dias, sem burocracia
         </p>
-        <p className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
+        <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
           Se o relatório não atender suas expectativas por qualquer motivo, basta enviar um e-mail
           para{" "}
           <a
             href="mailto:suporte@auditcredito.com.br"
             className="font-semibold underline"
-            style={{ color: "var(--blue)" }}
+            style={{ color: "#00D46A" }}
           >
             suporte@auditcredito.com.br
           </a>
@@ -148,7 +187,7 @@ export default function ObrigadoConteudo() {
         <a
           href="/auditoria"
           className="text-sm underline"
-          style={{ color: "var(--text-4)" }}
+          style={{ color: "rgba(255,255,255,0.35)" }}
         >
           Analisar outro contrato
         </a>
