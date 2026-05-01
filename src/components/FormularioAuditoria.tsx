@@ -4,23 +4,75 @@ import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { schemaFormulario, FormularioData, TIPOS_CREDITO_OPTIONS } from "@/lib/validations";
+import { schemaFormulario, FormularioData } from "@/lib/validations";
 import BarraProgresso from "./BarraProgresso";
 
+/* ── Campos obrigatórios na etapa 1 ─────────────────────────────────────── */
 const CAMPOS_ETAPA_1 = [
-  "tipoCredito",
-  "instituicao",
-  "valorDivida",
-  "taxaJurosMensal",
-  "dataContrato",
-  "mesesAtraso",
+  "tipoCredito", "instituicao", "valorDivida",
+  "taxaJurosMensal", "dataContrato", "mesesAtraso",
 ] as const;
 
-function delay(ms: number) {
-  return new Promise<void>((r) => setTimeout(r, ms));
+/* ── Tipos de crédito com visual e descrição ─────────────────────────────── */
+const TIPOS = [
+  {
+    value: "pessoal" as const,
+    label: "Crédito Pessoal",
+    desc: "Empréstimo bancário sem consignação",
+    icon: "M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+  },
+  {
+    value: "cheque_especial" as const,
+    label: "Cheque Especial",
+    desc: "Limite pré-aprovado da conta",
+    icon: "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z",
+  },
+  {
+    value: "consignado" as const,
+    label: "Consignado",
+    desc: "Parcelas descontadas em folha/INSS",
+    icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  },
+  {
+    value: "cartao_rotativo" as const,
+    label: "Rotativo do Cartão",
+    desc: "Fatura paga só no valor mínimo",
+    icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+  },
+  {
+    value: "cartao_parcelado" as const,
+    label: "Cartão Parcelado",
+    desc: "Compras divididas no cartão",
+    icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
+  },
+];
+
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+/* ── Helpers ─────────────────────────────────────────────────────────────── */
+function delay(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
+function calcAnual(m: number) { return m > 0 ? (Math.pow(1 + m / 100, 12) - 1) * 100 : 0; }
+function calcMensal(a: number) { return a > 0 ? (Math.pow(1 + a / 100, 1 / 12) - 1) * 100 : 0; }
+function fmt2(n: number) { return n.toFixed(2).replace(".", ","); }
+
+function periodoLabel(meses: number): string {
+  if (!meses || meses <= 0) return "";
+  const anos = Math.floor(meses / 12);
+  const m = meses % 12;
+  const parts: string[] = [];
+  if (anos > 0) parts.push(`${anos} ${anos === 1 ? "ano" : "anos"}`);
+  if (m > 0) parts.push(`${m} ${m === 1 ? "mês" : "meses"}`);
+  return parts.join(" e ");
 }
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
+function endDateLabel(dataContrato: string, meses: number): string {
+  if (!dataContrato || !meses || meses <= 0 || !/^\d{2}\/\d{4}$/.test(dataContrato)) return "";
+  const [mm, yyyy] = dataContrato.split("/").map(Number);
+  const end = new Date(yyyy, mm - 1 + meses - 1);
+  return `${MESES[end.getMonth()]}/${String(end.getFullYear()).slice(2)}`;
+}
+
+/* ── FieldError ─────────────────────────────────────────────────────────── */
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
   return (
@@ -33,18 +85,38 @@ function FieldError({ msg }: { msg?: string }) {
   );
 }
 
-function FieldLabel({ htmlFor, children, hint }: { htmlFor: string; children: React.ReactNode; hint?: string }) {
+/* ── HelpTip — dica expansível ──────────────────────────────────────────── */
+function HelpTip({ label = "Como encontro essa informação?", children }: {
+  label?: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="flex items-center justify-between mb-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-semibold" style={{ color: "var(--text-2)" }}>
-        {children}
-      </label>
-      {hint && <span className="text-xs" style={{ color: "var(--text-4)" }}>{hint}</span>}
+    <div className="mt-1.5">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 text-xs cursor-pointer"
+        style={{ color: "var(--blue)" }}
+      >
+        <svg className="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {open ? "Fechar dica" : label}
+      </button>
+      {open && (
+        <div
+          className="mt-2 p-3 rounded-xl text-xs leading-relaxed anim-fade"
+          style={{ background: "var(--surface-3)", border: "1px solid var(--bdr)", color: "var(--text-3)" }}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }
 
-/* ─── StepIndicator ─────────────────────────────────────────────────────── */
+/* ── StepIndicator ──────────────────────────────────────────────────────── */
 function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
   return (
     <div className="flex items-center mb-8">
@@ -55,17 +127,17 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
           <div key={n} className="flex items-center" style={{ flex: i === 0 ? "initial" : 1 }}>
             {i > 0 && (
               <div
-                className="h-0.5 flex-1 mx-3 transition-all duration-500"
-                style={{ background: done || active ? "var(--navy-mid)" : "var(--bdr-2)" }}
+                className="h-0.5 flex-1 mx-3 rounded-full transition-all duration-500"
+                style={{ background: done ? "var(--cta)" : "var(--bdr)" }}
               />
             )}
             <div className="flex items-center gap-2">
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 flex-shrink-0"
                 style={{
-                  background: done ? "var(--cta)" : active ? "var(--navy-mid)" : "var(--bdr)",
+                  background: done ? "var(--cta)" : active ? "var(--navy-mid)" : "var(--surface-2)",
                   color: done || active ? "#fff" : "var(--text-4)",
-                  boxShadow: active ? "0 0 0 3px rgba(30,58,95,0.2)" : "none",
+                  boxShadow: active ? "0 0 0 4px rgba(30,58,95,0.12)" : "none",
                 }}
               >
                 {done ? (
@@ -74,7 +146,10 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
                   </svg>
                 ) : n}
               </div>
-              <span className="text-sm font-medium hidden sm:block" style={{ color: active ? "var(--navy-mid)" : done ? "var(--cta)" : "var(--text-4)" }}>
+              <span
+                className="text-sm font-medium hidden sm:block"
+                style={{ color: active ? "var(--navy-mid)" : done ? "var(--cta)" : "var(--text-4)" }}
+              >
                 {label}
               </span>
             </div>
@@ -85,15 +160,8 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
   );
 }
 
-/* ─── MonthPicker ───────────────────────────────────────────────────────── */
-const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-
-function MonthPicker({
-  value,
-  onChange,
-  hasError,
-  id,
-}: {
+/* ── MonthPicker ─────────────────────────────────────────────────────────── */
+function MonthPicker({ value, onChange, hasError, id }: {
   value: string;
   onChange: (v: string) => void;
   hasError?: boolean;
@@ -107,16 +175,12 @@ function MonthPicker({
     if (value && /^\d{2}\/\d{4}$/.test(value)) return parseInt(value.split("/")[1]);
     return anoAtual;
   });
-
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  /* Fecha ao clicar fora */
   useEffect(() => {
     if (!open) return;
     function handler(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -124,48 +188,28 @@ function MonthPicker({
 
   const mesSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[0]) : null;
   const anoSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[1]) : null;
-
-  const displayValue = mesSel && anoSel
-    ? `${MESES[mesSel - 1]} / ${anoSel}`
-    : "";
+  const displayValue = mesSel && anoSel ? `${MESES[mesSel - 1]} / ${anoSel}` : "";
 
   function selectMes(mes: number) {
-    const mm = String(mes).padStart(2, "0");
-    onChange(`${mm}/${ano}`);
+    onChange(`${String(mes).padStart(2, "0")}/${ano}`);
     setOpen(false);
-  }
-
-  function isDisabled(mes: number) {
-    return ano === anoAtual && mes > mesAtual;
-  }
-
-  function isSelected(mes: number) {
-    return mes === mesSel && ano === anoSel;
   }
 
   return (
     <div ref={wrapRef} className="relative">
-      {/* Trigger button */}
       <button
-        id={id}
-        type="button"
-        onClick={() => setOpen((o) => !o)}
+        id={id} type="button" onClick={() => setOpen(o => !o)}
         className={`inp has-pfx has-sfx text-left cursor-pointer ${hasError ? "err" : ""}`}
         style={{ color: displayValue ? "var(--text)" : "var(--text-4)" }}
-        aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-haspopup="listbox" aria-expanded={open}
       >
         {displayValue || "Selecione mês / ano"}
       </button>
-
-      {/* Calendar icon (prefix) */}
       <div className="inp-pfx pointer-events-none">
         <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </div>
-
-      {/* Chevron (suffix) */}
       <div className="inp-sfx pointer-events-none">
         <svg
           className="w-4 h-4 transition-transform duration-200"
@@ -176,7 +220,6 @@ function MonthPicker({
         </svg>
       </div>
 
-      {/* Dropdown */}
       {open && (
         <div
           role="listbox"
@@ -188,40 +231,25 @@ function MonthPicker({
             top: "100%",
           }}
         >
-          {/* Year navigation */}
           <div
             className="flex items-center justify-between px-4 py-3"
             style={{ borderBottom: "1px solid var(--bdr)", background: "var(--surface-2)" }}
           >
             <button
-              type="button"
-              onClick={() => setAno((y) => Math.max(1990, y - 1))}
-              disabled={ano <= 1990}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{
-                color: ano <= 1990 ? "var(--text-4)" : "var(--navy-mid)",
-                background: ano <= 1990 ? "transparent" : "var(--surface-3)",
-              }}
+              type="button" onClick={() => setAno(y => Math.max(1990, y - 1))} disabled={ano <= 1990}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+              style={{ color: ano <= 1990 ? "var(--text-4)" : "var(--navy-mid)", background: ano <= 1990 ? "transparent" : "var(--surface-3)" }}
               aria-label="Ano anterior"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-
-            <span className="font-bold text-base tabular-nums" style={{ color: "var(--text)" }}>
-              {ano}
-            </span>
-
+            <span className="font-bold text-base tabular-nums" style={{ color: "var(--text)" }}>{ano}</span>
             <button
-              type="button"
-              onClick={() => setAno((y) => Math.min(anoAtual, y + 1))}
-              disabled={ano >= anoAtual}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{
-                color: ano >= anoAtual ? "var(--text-4)" : "var(--navy-mid)",
-                background: ano >= anoAtual ? "transparent" : "var(--surface-3)",
-              }}
+              type="button" onClick={() => setAno(y => Math.min(anoAtual, y + 1))} disabled={ano >= anoAtual}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+              style={{ color: ano >= anoAtual ? "var(--text-4)" : "var(--navy-mid)", background: ano >= anoAtual ? "transparent" : "var(--surface-3)" }}
               aria-label="Próximo ano"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -230,30 +258,19 @@ function MonthPicker({
             </button>
           </div>
 
-          {/* Month grid */}
           <div className="grid grid-cols-3 gap-1.5 p-3">
             {MESES.map((m, i) => {
               const mes = i + 1;
-              const sel = isSelected(mes);
-              const dis = isDisabled(mes);
+              const sel = mes === mesSel && ano === anoSel;
+              const dis = ano === anoAtual && mes > mesAtual;
               return (
                 <button
-                  key={m}
-                  type="button"
-                  role="option"
-                  aria-selected={sel}
-                  disabled={dis}
+                  key={m} type="button" role="option" aria-selected={sel} disabled={dis}
                   onClick={() => selectMes(mes)}
                   className="rounded-xl py-2 text-sm font-semibold transition-all duration-150"
                   style={{
-                    background: sel
-                      ? "var(--navy-mid)"
-                      : "transparent",
-                    color: sel
-                      ? "#fff"
-                      : dis
-                      ? "var(--text-4)"
-                      : "var(--text-2)",
+                    background: sel ? "var(--navy-mid)" : "transparent",
+                    color: sel ? "#fff" : dis ? "var(--text-4)" : "var(--text-2)",
                     cursor: dis ? "not-allowed" : "pointer",
                     border: sel ? "none" : "1px solid transparent",
                   }}
@@ -264,13 +281,11 @@ function MonthPicker({
             })}
           </div>
 
-          {/* Quick shortcut: limpar */}
           {value && (
             <div style={{ borderTop: "1px solid var(--bdr)", padding: "0.5rem 0.75rem" }}>
               <button
-                type="button"
-                onClick={() => { onChange(""); setOpen(false); }}
-                className="w-full text-center text-xs py-1.5 rounded-lg transition-colors"
+                type="button" onClick={() => { onChange(""); setOpen(false); }}
+                className="w-full text-center text-xs py-1.5 rounded-lg cursor-pointer"
                 style={{ color: "var(--text-3)", background: "transparent" }}
               >
                 Limpar seleção
@@ -283,7 +298,9 @@ function MonthPicker({
   );
 }
 
-/* ─── Componente principal ──────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   COMPONENTE PRINCIPAL
+════════════════════════════════════════════════════════════════════════════ */
 export default function FormularioAuditoria() {
   const router = useRouter();
   const [etapa, setEtapa] = useState<1 | 2>(1);
@@ -292,6 +309,10 @@ export default function FormularioAuditoria() {
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [consentimento, setConsentimento] = useState(false);
   const [erroConsentimento, setErroConsentimento] = useState(false);
+
+  /* ── Taxa toggle: a.m. ↔ a.a. ────────────────────────────────────────── */
+  const [taxaIsAnual, setTaxaIsAnual] = useState(false);
+  const [taxaDisplayStr, setTaxaDisplayStr] = useState("");
 
   const {
     register,
@@ -305,13 +326,49 @@ export default function FormularioAuditoria() {
     mode: "onBlur",
   });
 
-  const dataContrato = watch("dataContrato") ?? "";
+  const tipoAtual      = watch("tipoCredito");
+  const dataContrato   = watch("dataContrato") ?? "";
+  const mesesWatch     = watch("mesesAtraso") ?? 0;
+  const taxaMensal     = watch("taxaJurosMensal") ?? 0;
+  const valorWatch     = watch("valorDivida") ?? 0;
+  const instituicaoW   = watch("instituicao") ?? "";
 
+  /* ── Labels de período ────────────────────────────────────────────────── */
+  const startLabel = dataContrato && /^\d{2}\/\d{4}$/.test(dataContrato)
+    ? (() => { const [mm, yyyy] = dataContrato.split("/"); return `${MESES[parseInt(mm) - 1]}/${String(yyyy).slice(2)}`; })()
+    : "";
+  const endLabel = endDateLabel(dataContrato, mesesWatch);
+
+  /* ── Handler da taxa ──────────────────────────────────────────────────── */
+  function handleTaxaInput(val: string) {
+    setTaxaDisplayStr(val);
+    const num = parseFloat(val.replace(",", ".")) || 0;
+    if (num > 0) {
+      const mensal = taxaIsAnual ? calcMensal(num) : num;
+      setValue("taxaJurosMensal", parseFloat(mensal.toFixed(4)), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }
+
+  function toggleTaxaMode() {
+    const stored = taxaMensal;
+    if (!taxaIsAnual && stored > 0) {
+      setTaxaDisplayStr(fmt2(calcAnual(stored)));
+    } else if (taxaIsAnual && stored > 0) {
+      setTaxaDisplayStr(fmt2(stored));
+    }
+    setTaxaIsAnual(p => !p);
+  }
+
+  /* ── Avançar etapa ────────────────────────────────────────────────────── */
   const avancarEtapa = async () => {
     const valido = await trigger([...CAMPOS_ETAPA_1]);
     if (valido) setEtapa(2);
   };
 
+  /* ── Submissão ────────────────────────────────────────────────────────── */
   const onSubmit = async (data: FormularioData) => {
     if (!consentimento) { setErroConsentimento(true); return; }
     setErroConsentimento(false);
@@ -325,7 +382,6 @@ export default function FormularioAuditoria() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       setEtapaProcessamento(2);
       await delay(500);
       setEtapaProcessamento(3);
@@ -336,10 +392,8 @@ export default function FormularioAuditoria() {
         const body = await res.json().catch(() => ({}));
         throw new Error((body as { message?: string }).message ?? "Erro ao processar a análise.");
       }
-
       const resultado = await res.json();
       await delay(500);
-
       sessionStorage.setItem("auditoria_resultado", JSON.stringify(resultado));
       router.push("/resultado");
     } catch (err) {
@@ -349,6 +403,14 @@ export default function FormularioAuditoria() {
     }
   };
 
+  const brl = (n: number) =>
+    n > 0
+      ? `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : "—";
+
+  const tipoInfo = TIPOS.find(t => t.value === tipoAtual);
+
+  /* ── Render ───────────────────────────────────────────────────────────── */
   return (
     <>
       <BarraProgresso visivel={processando} etapa={etapaProcessamento} />
@@ -358,33 +420,65 @@ export default function FormularioAuditoria() {
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
 
-          {/* ── ETAPA 1 ──────────────────────────────────────────────── */}
+          {/* ══════════ ETAPA 1 ══════════════════════════════════════════ */}
           {etapa === 1 && (
-            <div className="space-y-5 anim-fade">
+            <div className="space-y-6 anim-fade">
 
-              {/* Tipo de crédito */}
+              {/* ── Tipo de crédito — cards visuais ──────────────────── */}
               <div>
-                <FieldLabel htmlFor="tipoCredito">Tipo de crédito</FieldLabel>
-                <div className="inp-wrap">
-                  <select
-                    id="tipoCredito"
-                    {...register("tipoCredito")}
-                    className={`inp select-inp ${errors.tipoCredito ? "err" : ""}`}
-                  >
-                    <option value="">Selecione o tipo de crédito...</option>
-                    {TIPOS_CREDITO_OPTIONS.map((op) => (
-                      <option key={op.value} value={op.value}>{op.label}</option>
-                    ))}
-                  </select>
+                <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-2)" }}>
+                  Qual o tipo do seu crédito?
+                  <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                </p>
+                {/* Hidden input registrado no RHF */}
+                <input type="hidden" {...register("tipoCredito")} />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {TIPOS.map(tipo => {
+                    const sel = tipoAtual === tipo.value;
+                    return (
+                      <button
+                        key={tipo.value}
+                        type="button"
+                        onClick={() => setValue("tipoCredito", tipo.value, { shouldValidate: true, shouldDirty: true })}
+                        className="text-left rounded-xl p-3 border-2 transition-all duration-150 cursor-pointer"
+                        style={{
+                          background: sel ? "rgba(30,58,95,0.06)" : "var(--surface)",
+                          borderColor: sel ? "var(--navy-mid)" : "var(--bdr-2)",
+                          boxShadow: sel ? "0 0 0 3px rgba(30,58,95,0.08)" : "none",
+                        }}
+                      >
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-colors"
+                          style={{ background: sel ? "var(--navy-mid)" : "var(--surface-2)" }}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                            stroke={sel ? "#fff" : "var(--text-3)"} strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d={tipo.icon} />
+                          </svg>
+                        </div>
+                        <p
+                          className="text-xs font-bold leading-tight mb-0.5"
+                          style={{ color: sel ? "var(--navy-mid)" : "var(--text)" }}
+                        >
+                          {tipo.label}
+                        </p>
+                        <p className="text-xs leading-tight" style={{ color: sel ? "var(--navy-soft)" : "var(--text-4)" }}>
+                          {tipo.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
                 </div>
                 <FieldError msg={errors.tipoCredito?.message} />
               </div>
 
-              {/* Banco */}
+              {/* ── Banco ─────────────────────────────────────────────── */}
               <div>
-                <FieldLabel htmlFor="instituicao" hint="Ex: Nubank, Itaú, Bradesco...">
-                  Banco ou instituição financeira
-                </FieldLabel>
+                <label htmlFor="instituicao" className="block text-sm font-semibold mb-1.5"
+                  style={{ color: "var(--text-2)" }}>
+                  Banco ou financeira
+                  <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                </label>
                 <div className="inp-wrap">
                   <div className="inp-pfx">
                     <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -392,9 +486,8 @@ export default function FormularioAuditoria() {
                     </svg>
                   </div>
                   <input
-                    id="instituicao"
-                    type="text"
-                    placeholder="Banco do Brasil"
+                    id="instituicao" type="text"
+                    placeholder="Nubank, Itaú, Bradesco, Caixa..."
                     {...register("instituicao")}
                     className={`inp has-pfx ${errors.instituicao ? "err" : ""}`}
                   />
@@ -402,87 +495,163 @@ export default function FormularioAuditoria() {
                 <FieldError msg={errors.instituicao?.message} />
               </div>
 
-              {/* Valor + Taxa */}
+              {/* ── Valor + Prazo (2 colunas) ─────────────────────────── */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <FieldLabel htmlFor="valorDivida">Valor da dívida</FieldLabel>
+                  <label htmlFor="valorDivida" className="block text-sm font-semibold mb-1.5"
+                    style={{ color: "var(--text-2)" }}>
+                    Valor total do crédito
+                    <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                  </label>
                   <div className="inp-wrap">
-                    <span className="inp-pfx font-semibold text-xs" style={{ color: "var(--text-3)" }}>R$</span>
+                    <span className="inp-pfx font-bold text-xs" style={{ color: "var(--text-3)" }}>R$</span>
                     <input
-                      id="valorDivida"
-                      type="number"
-                      step="0.01"
-                      min="100"
-                      placeholder="5.000,00"
+                      id="valorDivida" type="number" step="0.01" min="100"
+                      placeholder="5000"
                       {...register("valorDivida", { valueAsNumber: true })}
                       className={`inp has-pfx ${errors.valorDivida ? "err" : ""}`}
                     />
                   </div>
+                  <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
+                    Valor que tomou emprestado, não as parcelas
+                  </p>
                   <FieldError msg={errors.valorDivida?.message} />
                 </div>
 
                 <div>
-                  <FieldLabel htmlFor="taxaJurosMensal">Taxa cobrada</FieldLabel>
+                  <label htmlFor="mesesAtraso" className="block text-sm font-semibold mb-1.5"
+                    style={{ color: "var(--text-2)" }}>
+                    Prazo total
+                    <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                  </label>
                   <div className="inp-wrap">
                     <input
-                      id="taxaJurosMensal"
-                      type="number"
-                      step="0.01"
-                      min="0.1"
-                      max="30"
-                      placeholder="4,50"
-                      {...register("taxaJurosMensal", { valueAsNumber: true })}
-                      className={`inp has-sfx ${errors.taxaJurosMensal ? "err" : ""}`}
-                    />
-                    <span className="inp-sfx text-xs font-semibold">% a.m.</span>
-                  </div>
-                  <FieldError msg={errors.taxaJurosMensal?.message} />
-                </div>
-              </div>
-
-              {/* Data do contrato + Período */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  {/* Hidden input for RHF validation */}
-                  <input
-                    type="hidden"
-                    {...register("dataContrato")}
-                  />
-                  <FieldLabel htmlFor="dataContrato">Mês/ano do contrato</FieldLabel>
-                  <div className="inp-wrap">
-                    <MonthPicker
-                      id="dataContrato"
-                      value={dataContrato}
-                      onChange={(v) => {
-                        setValue("dataContrato", v, { shouldValidate: true, shouldDirty: true });
-                      }}
-                      hasError={!!errors.dataContrato}
-                    />
-                  </div>
-                  <FieldError msg={errors.dataContrato?.message} />
-                </div>
-
-                <div>
-                  <FieldLabel htmlFor="mesesAtraso" hint="1 a 360">
-                    Período (meses)
-                  </FieldLabel>
-                  <div className="inp-wrap">
-                    <input
-                      id="mesesAtraso"
-                      type="number"
-                      step="1"
-                      min="1"
-                      max="360"
+                      id="mesesAtraso" type="number" step="1" min="1" max="360"
                       placeholder="24"
                       {...register("mesesAtraso", { valueAsNumber: true })}
                       className={`inp has-sfx ${errors.mesesAtraso ? "err" : ""}`}
                     />
                     <span className="inp-sfx text-xs font-semibold">meses</span>
                   </div>
+                  {startLabel && endLabel && mesesWatch > 0 ? (
+                    <p className="mt-1 text-xs font-medium" style={{ color: "var(--text-3)" }}>
+                      {startLabel} → {endLabel} &nbsp;·&nbsp; {periodoLabel(mesesWatch)}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
+                      Ex: 12, 24, 48 ou 60 meses
+                    </p>
+                  )}
                   <FieldError msg={errors.mesesAtraso?.message} />
                 </div>
               </div>
 
+              {/* ── Taxa de juros com toggle a.m./a.a. ───────────────── */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="taxa-display" className="text-sm font-semibold"
+                    style={{ color: "var(--text-2)" }}>
+                    Taxa de juros cobrada
+                    <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                  </label>
+
+                  {/* Toggle a.m. / a.a. */}
+                  <div
+                    className="flex items-center rounded-lg overflow-hidden"
+                    style={{ border: "1.5px solid var(--bdr-2)", background: "var(--surface-2)" }}
+                  >
+                    {(["a.m.", "a.a."] as const).map((modo, i) => {
+                      const ativo = taxaIsAnual ? i === 1 : i === 0;
+                      return (
+                        <button
+                          key={modo}
+                          type="button"
+                          onClick={() => { if (!ativo) toggleTaxaMode(); }}
+                          className="text-xs font-bold px-2.5 py-1 transition-all duration-150"
+                          style={{
+                            background: ativo ? "var(--navy-mid)" : "transparent",
+                            color: ativo ? "#fff" : "var(--text-3)",
+                            cursor: ativo ? "default" : "pointer",
+                          }}
+                          title={ativo ? undefined : `Mudar para % ${modo}`}
+                        >
+                          % {modo}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Hidden input para RHF */}
+                <input type="hidden" {...register("taxaJurosMensal")} />
+
+                <div className="inp-wrap">
+                  <input
+                    id="taxa-display"
+                    type="number"
+                    step="0.01"
+                    value={taxaDisplayStr}
+                    onChange={e => handleTaxaInput(e.target.value)}
+                    onBlur={() => trigger("taxaJurosMensal")}
+                    placeholder={taxaIsAnual ? "Ex: 54,00" : "Ex: 4,50"}
+                    className={`inp has-sfx ${errors.taxaJurosMensal ? "err" : ""}`}
+                  />
+                  <span className="inp-sfx text-xs font-bold" style={{ color: "var(--text-3)" }}>
+                    % {taxaIsAnual ? "a.a." : "a.m."}
+                  </span>
+                </div>
+
+                {/* Conversor em tempo real */}
+                {taxaMensal > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex-1 h-px" style={{ background: "var(--bdr)" }} />
+                    <span
+                      className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                      style={{ background: "var(--surface-3)", color: "var(--text-3)", border: "1px solid var(--bdr-2)" }}
+                    >
+                      {taxaIsAnual
+                        ? `= ${fmt2(taxaMensal)}% ao mês`
+                        : `= ${fmt2(calcAnual(taxaMensal))}% ao ano`}
+                    </span>
+                    <div className="flex-1 h-px" style={{ background: "var(--bdr)" }} />
+                  </div>
+                )}
+
+                <FieldError msg={errors.taxaJurosMensal?.message} />
+
+                <HelpTip label="Como encontro a taxa no contrato ou fatura?">
+                  <p className="mb-2">
+                    <strong>Procure por:</strong> &ldquo;CET&rdquo;, &ldquo;taxa nominal&rdquo;, &ldquo;taxa contratada&rdquo; ou &ldquo;taxa de juros&rdquo; — no seu contrato, extrato ou fatura.
+                  </p>
+                  <p>
+                    Se a taxa estiver <strong>em % ao ano (a.a.)</strong>, clique no botão <strong>&ldquo;% a.a.&rdquo;</strong> ao lado do campo antes de digitar — o sistema converte automaticamente para mensal.
+                  </p>
+                </HelpTip>
+              </div>
+
+              {/* ── Data do contrato ──────────────────────────────────── */}
+              <div>
+                <label htmlFor="dataContrato" className="block text-sm font-semibold mb-1.5"
+                  style={{ color: "var(--text-2)" }}>
+                  Mês e ano do contrato
+                  <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                </label>
+                <input type="hidden" {...register("dataContrato")} />
+                <div className="inp-wrap">
+                  <MonthPicker
+                    id="dataContrato"
+                    value={dataContrato}
+                    onChange={v => setValue("dataContrato", v, { shouldValidate: true, shouldDirty: true })}
+                    hasError={!!errors.dataContrato}
+                  />
+                </div>
+                <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
+                  Mês em que você assinou ou ativou o crédito
+                </p>
+                <FieldError msg={errors.dataContrato?.message} />
+              </div>
+
+              {/* ── Botão continuar ───────────────────────────────────── */}
               <div className="pt-1">
                 <button type="button" onClick={avancarEtapa} className="btn-navy w-full py-3.5 text-base">
                   Continuar
@@ -498,25 +667,85 @@ export default function FormularioAuditoria() {
             </div>
           )}
 
-          {/* ── ETAPA 2 ──────────────────────────────────────────────── */}
+          {/* ══════════ ETAPA 2 ══════════════════════════════════════════ */}
           {etapa === 2 && (
             <div className="space-y-5 anim-fade">
 
+              {/* ── Resumo dos dados da etapa 1 ───────────────────────── */}
               <div
-                className="rounded-xl px-4 py-3 flex items-center gap-3"
-                style={{ background: "var(--surface-3)", border: "1px solid var(--bdr)" }}
+                className="rounded-2xl p-4"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--bdr)" }}
               >
-                <svg className="w-4 h-4 flex-shrink-0" style={{ color: "var(--blue)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-xs" style={{ color: "var(--text-3)" }}>
-                  Dados do crédito preenchidos. Só precisamos saber onde entregar o resultado.
-                </p>
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ background: "var(--cta)" }}
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--text-3)" }}>
+                    Dados informados
+                  </span>
+                  <button
+                    type="button" onClick={() => setEtapa(1)}
+                    className="ml-auto text-xs underline cursor-pointer"
+                    style={{ color: "var(--blue)" }}
+                  >
+                    Editar
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                  {tipoInfo && (
+                    <div>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Tipo de crédito</p>
+                      <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{tipoInfo.label}</p>
+                    </div>
+                  )}
+                  {instituicaoW && (
+                    <div>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Banco / financeira</p>
+                      <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{instituicaoW}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Valor total</p>
+                    <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{brl(valorWatch)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Taxa cobrada</p>
+                    <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>
+                      {taxaMensal > 0
+                        ? <>{fmt2(taxaMensal)}% a.m. &nbsp;·&nbsp; {fmt2(calcAnual(taxaMensal))}% a.a.</>
+                        : "—"}
+                    </p>
+                  </div>
+                  {dataContrato && (
+                    <div>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Contrato</p>
+                      <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>
+                        {startLabel}{mesesWatch > 0 && endLabel ? ` → ${endLabel}` : ""}
+                      </p>
+                    </div>
+                  )}
+                  {mesesWatch > 0 && (
+                    <div>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Prazo</p>
+                      <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{periodoLabel(mesesWatch)}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Nome */}
+              {/* ── Nome ─────────────────────────────────────────────── */}
               <div>
-                <FieldLabel htmlFor="nome">Seu nome completo</FieldLabel>
+                <label htmlFor="nome" className="block text-sm font-semibold mb-1.5"
+                  style={{ color: "var(--text-2)" }}>
+                  Como quer ser chamado?
+                  <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                </label>
                 <div className="inp-wrap">
                   <div className="inp-pfx">
                     <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -524,9 +753,7 @@ export default function FormularioAuditoria() {
                     </svg>
                   </div>
                   <input
-                    id="nome"
-                    type="text"
-                    placeholder="Maria da Silva"
+                    id="nome" type="text" placeholder="Maria da Silva"
                     {...register("nome")}
                     className={`inp has-pfx ${errors.nome ? "err" : ""}`}
                   />
@@ -534,9 +761,13 @@ export default function FormularioAuditoria() {
                 <FieldError msg={errors.nome?.message} />
               </div>
 
-              {/* E-mail */}
+              {/* ── E-mail ────────────────────────────────────────────── */}
               <div>
-                <FieldLabel htmlFor="email">Seu e-mail</FieldLabel>
+                <label htmlFor="email" className="block text-sm font-semibold mb-1.5"
+                  style={{ color: "var(--text-2)" }}>
+                  E-mail para receber o resultado gratuito
+                  <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                </label>
                 <div className="inp-wrap">
                   <div className="inp-pfx">
                     <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -544,20 +775,18 @@ export default function FormularioAuditoria() {
                     </svg>
                   </div>
                   <input
-                    id="email"
-                    type="email"
-                    placeholder="maria@email.com"
+                    id="email" type="email" placeholder="maria@email.com"
                     {...register("email")}
                     className={`inp has-pfx ${errors.email ? "err" : ""}`}
                   />
                 </div>
                 <p className="mt-1.5 text-xs" style={{ color: "var(--text-4)" }}>
-                  Usado apenas para entregar o relatório — sem spam, jamais.
+                  Seu resultado gratuito será enviado aqui. Sem spam, jamais.
                 </p>
                 <FieldError msg={errors.email?.message} />
               </div>
 
-              {/* Consentimento LGPD */}
+              {/* ── Consentimento LGPD ───────────────────────────────── */}
               <div
                 className="rounded-xl p-4"
                 style={{
@@ -569,10 +798,9 @@ export default function FormularioAuditoria() {
                 <label className="flex items-start gap-3 cursor-pointer select-none">
                   <div className="relative flex-shrink-0 mt-0.5">
                     <input
-                      type="checkbox"
-                      id="consentimento"
+                      type="checkbox" id="consentimento"
                       checked={consentimento}
-                      onChange={(e) => {
+                      onChange={e => {
                         setConsentimento(e.target.checked);
                         if (e.target.checked) setErroConsentimento(false);
                       }}
@@ -580,10 +808,7 @@ export default function FormularioAuditoria() {
                     />
                     <div
                       className="w-5 h-5 rounded flex items-center justify-center border-2 transition-all duration-150"
-                      style={{
-                        background: consentimento ? "var(--cta)" : "white",
-                        borderColor: consentimento ? "var(--cta)" : "var(--bdr-2)",
-                      }}
+                      style={{ background: consentimento ? "var(--cta)" : "white", borderColor: consentimento ? "var(--cta)" : "var(--bdr-2)" }}
                     >
                       {consentimento && (
                         <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -594,11 +819,13 @@ export default function FormularioAuditoria() {
                   </div>
                   <span className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
                     Concordo com o uso dos dados informados exclusivamente para gerar esta análise.
-                    Nenhum CPF ou dado bancário é coletado. Consulte a{" "}
-                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: "var(--blue)" }}>
+                    Sem CPF ou dado bancário coletado. Ver{" "}
+                    <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer"
+                      className="underline font-medium" style={{ color: "var(--blue)" }}>
                       Política de Privacidade
-                    </a>{" "}e os{" "}
-                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: "var(--blue)" }}>
+                    </a>{" "}e{" "}
+                    <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer"
+                      className="underline font-medium" style={{ color: "var(--blue)" }}>
                       Termos de Uso
                     </a>.
                   </span>
@@ -613,7 +840,7 @@ export default function FormularioAuditoria() {
                 )}
               </div>
 
-              {/* Erro de envio */}
+              {/* ── Erro de envio ─────────────────────────────────────── */}
               {erroEnvio && (
                 <div
                   className="rounded-xl px-4 py-3 flex items-start gap-3 text-sm"
@@ -626,7 +853,7 @@ export default function FormularioAuditoria() {
                 </div>
               )}
 
-              {/* Botões */}
+              {/* ── Botões ───────────────────────────────────────────── */}
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setEtapa(1)} className="btn-ghost flex-1" disabled={processando}>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
