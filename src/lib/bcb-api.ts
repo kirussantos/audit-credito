@@ -93,8 +93,14 @@ export async function fetchTaxaBCB(
 
 /**
  * Retorna a taxa média BCB (% a.m.) para o tipo de crédito no mês da data do
- * contrato. Busca uma janela de ±3 meses para garantir que haja pelo menos um
- * registro disponível (alguns meses podem não ter divulgação).
+ * contrato.
+ *
+ * Estratégia de busca (em ordem de prioridade):
+ *  1. Janela ampla: 4 meses antes → 1 mês depois do contrato. Cobre o atraso
+ *     de publicação do BCB (~2 meses) para contratos recentes.
+ *  2. Fallback "ultimo/3": se a janela inteira cair no futuro (contrato do mês
+ *     corrente ou posterior sem dados publicados), usa os 3 últimos registros
+ *     disponíveis da série — garantindo que a API nunca retorne 404.
  */
 export async function getTaxaMediaPeriodo(
   tipoCredito: TipoCredito,
@@ -103,14 +109,43 @@ export async function getTaxaMediaPeriodo(
   const codigo = SERIES_BCB[tipoCredito];
   const dt = new Date(dataContrato + "T00:00:00");
 
-  // Janela: mês anterior → mês seguinte ao contrato
-  const inicio = new Date(dt.getFullYear(), dt.getMonth() - 1, 1);
-  const fim    = new Date(dt.getFullYear(), dt.getMonth() + 2, 0); // último dia do mês seguinte
+  // Janela ampla: 4 meses antes → 1 mês depois do contrato
+  // (atraso típico de publicação BCB: 1–2 meses)
+  const inicio = new Date(dt.getFullYear(), dt.getMonth() - 4, 1);
+  const fim    = new Date(dt.getFullYear(), dt.getMonth() + 2, 0);
 
   const fmt = (d: Date) =>
     `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 
-  const registros = await fetchTaxaBCB(codigo, fmt(inicio), fmt(fim));
+  // Tenta busca por intervalo; em caso de 404 (dados ainda não publicados pelo
+  // BCB), faz fallback para os últimos 3 registros disponíveis da série.
+  let registros: RegistroBCB[];
+  try {
+    registros = await fetchTaxaBCB(codigo, fmt(inicio), fmt(fim));
+  } catch {
+    // Fallback: BCB não publicou dados para este período ainda
+    const urlFallback = `${BASE_URL}.${codigo}/dados/ultimo/3?formato=json`;
+    const chaveFallback = `${codigo}:ultimo:3`;
+    const agora = Date.now();
+
+    const cached = cache.get(chaveFallback);
+    if (cached && cached.expiraEm > agora) {
+      registros = cached.dados;
+    } else {
+      const res = await fetchComTimeout(urlFallback);
+      if (!res.ok) {
+        throw new Error(
+          `BCB API indisponível para série ${codigo}. Tente novamente em instantes.`
+        );
+      }
+      const dados: RegistroBCB[] = await res.json();
+      if (!Array.isArray(dados) || dados.length === 0) {
+        throw new Error(`BCB API não retornou dados para série ${codigo}.`);
+      }
+      cache.set(chaveFallback, { dados, expiraEm: agora + CACHE_TTL_MS });
+      registros = dados;
+    }
+  }
 
   // Seleciona o registro mais próximo (antes ou igual) à data do contrato
   const dataContratoParsed = dt.getTime();
