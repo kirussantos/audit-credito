@@ -13,36 +13,36 @@ const CAMPOS_ETAPA_1 = [
   "taxaJurosMensal", "dataContrato", "mesesAtraso",
 ] as const;
 
-/* ── Tipos de crédito com visual e descrição ─────────────────────────────── */
+/* ── Tipos de crédito — linguagem simples ────────────────────────────────── */
 const TIPOS = [
   {
     value: "pessoal" as const,
-    label: "Crédito Pessoal",
-    desc: "Empréstimo bancário sem consignação",
+    label: "Empréstimo Pessoal",
+    desc: "O banco depositou dinheiro na sua conta",
     icon: "M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z",
   },
   {
     value: "cheque_especial" as const,
     label: "Cheque Especial",
-    desc: "Limite pré-aprovado da conta",
+    desc: "Conta ficou no negativo e o banco cobriu",
     icon: "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z",
   },
   {
     value: "consignado" as const,
     label: "Consignado",
-    desc: "Parcelas descontadas em folha/INSS",
+    desc: "Desconta direto do salário ou INSS",
     icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
   },
   {
     value: "cartao_rotativo" as const,
-    label: "Rotativo do Cartão",
-    desc: "Fatura paga só no valor mínimo",
+    label: "Fatura em Aberto",
+    desc: "Pagou só o mínimo da fatura do cartão",
     icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
   },
   {
     value: "cartao_parcelado" as const,
-    label: "Cartão Parcelado",
-    desc: "Compras divididas no cartão",
+    label: "Compra Parcelada",
+    desc: "Dividiu uma compra em várias vezes no cartão",
     icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
   },
 ];
@@ -72,7 +72,7 @@ function endDateLabel(dataContrato: string, meses: number): string {
   return `${MESES[end.getMonth()]}/${String(end.getFullYear()).slice(2)}`;
 }
 
-/* ── FieldError ─────────────────────────────────────────────────────────── */
+/* ── FieldError ──────────────────────────────────────────────────────────── */
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
   return (
@@ -85,7 +85,7 @@ function FieldError({ msg }: { msg?: string }) {
   );
 }
 
-/* ── HelpTip — dica expansível ──────────────────────────────────────────── */
+/* ── HelpTip — dica expansível ───────────────────────────────────────────── */
 function HelpTip({ label = "Como encontro essa informação?", children }: {
   label?: string;
   children: React.ReactNode;
@@ -116,11 +116,11 @@ function HelpTip({ label = "Como encontro essa informação?", children }: {
   );
 }
 
-/* ── StepIndicator ──────────────────────────────────────────────────────── */
+/* ── StepIndicator ───────────────────────────────────────────────────────── */
 function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
   return (
     <div className="flex items-center mb-8">
-      {[{ n: 1, label: "Dados do crédito" }, { n: 2, label: "Seus dados" }].map(({ n, label }, i) => {
+      {[{ n: 1, label: "Sobre a dívida" }, { n: 2, label: "Seus dados" }].map(({ n, label }, i) => {
         const done = etapa > n;
         const active = etapa === n;
         return (
@@ -169,7 +169,6 @@ function MonthPicker({ value, onChange, hasError, id }: {
 }) {
   const anoAtual = new Date().getFullYear();
   const mesAtual = new Date().getMonth() + 1;
-
   const [open, setOpen] = useState(false);
   const [ano, setAno] = useState<number>(() => {
     if (value && /^\d{2}\/\d{4}$/.test(value)) return parseInt(value.split("/")[1]);
@@ -203,7 +202,7 @@ function MonthPicker({ value, onChange, hasError, id }: {
         style={{ color: displayValue ? "var(--text)" : "var(--text-4)" }}
         aria-haspopup="listbox" aria-expanded={open}
       >
-        {displayValue || "Selecione mês / ano"}
+        {displayValue || "Clique para escolher o mês e o ano"}
       </button>
       <div className="inp-pfx pointer-events-none">
         <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -326,12 +325,12 @@ export default function FormularioAuditoria() {
     mode: "onBlur",
   });
 
-  const tipoAtual      = watch("tipoCredito");
-  const dataContrato   = watch("dataContrato") ?? "";
-  const mesesWatch     = watch("mesesAtraso") ?? 0;
-  const taxaMensal     = watch("taxaJurosMensal") ?? 0;
-  const valorWatch     = watch("valorDivida") ?? 0;
-  const instituicaoW   = watch("instituicao") ?? "";
+  const tipoAtual    = watch("tipoCredito");
+  const dataContrato = watch("dataContrato") ?? "";
+  const mesesWatch   = watch("mesesAtraso") ?? 0;
+  const taxaMensal   = watch("taxaJurosMensal") ?? 0;
+  const valorWatch   = watch("valorDivida") ?? 0;
+  const instituicaoW = watch("instituicao") ?? "";
 
   /* ── Labels de período ────────────────────────────────────────────────── */
   const startLabel = dataContrato && /^\d{2}\/\d{4}$/.test(dataContrato)
@@ -339,24 +338,25 @@ export default function FormularioAuditoria() {
     : "";
   const endLabel = endDateLabel(dataContrato, mesesWatch);
 
-  /* ── Handler da taxa ──────────────────────────────────────────────────── */
+  /* ── Handler da taxa — BUG FIX: sempre chama setValue, mesmo com campo vazio ── */
   function handleTaxaInput(val: string) {
     setTaxaDisplayStr(val);
     const num = parseFloat(val.replace(",", ".")) || 0;
-    if (num > 0) {
-      const mensal = taxaIsAnual ? calcMensal(num) : num;
-      setValue("taxaJurosMensal", parseFloat(mensal.toFixed(4)), {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    }
+    // Sempre atualiza o RHF: quando vazio → 0 → falha validação (min 0.1)
+    const mensal = num > 0 ? (taxaIsAnual ? calcMensal(num) : num) : 0;
+    setValue("taxaJurosMensal", parseFloat(mensal.toFixed(4)), {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   }
 
   function toggleTaxaMode() {
     const stored = taxaMensal;
     if (!taxaIsAnual && stored > 0) {
+      // a.m. → a.a.: converte para anual
       setTaxaDisplayStr(fmt2(calcAnual(stored)));
     } else if (taxaIsAnual && stored > 0) {
+      // a.a. → a.m.: mostra o mensal armazenado
       setTaxaDisplayStr(fmt2(stored));
     }
     setTaxaIsAnual(p => !p);
@@ -424,11 +424,28 @@ export default function FormularioAuditoria() {
           {etapa === 1 && (
             <div className="space-y-6 anim-fade">
 
-              {/* ── Tipo de crédito — cards visuais ──────────────────── */}
+              {/* ── Aviso introdutório ───────────────────────────────── */}
+              <div
+                className="rounded-xl px-4 py-3.5 text-sm leading-relaxed"
+                style={{
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--bdr)",
+                  color: "var(--text-3)",
+                }}
+              >
+                Preencha com o que tiver no seu contrato ou extrato.{" "}
+                <strong style={{ color: "var(--text)" }}>Não precisa ser 100% exato</strong>{" "}
+                — mesmo valores aproximados já mostram se os juros cobrados estão acima do limite do Banco Central.
+              </div>
+
+              {/* ── Tipo de crédito ──────────────────────────────────── */}
               <div>
-                <p className="text-sm font-semibold mb-3" style={{ color: "var(--text-2)" }}>
-                  Qual o tipo do seu crédito?
+                <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-2)" }}>
+                  Que tipo de dívida você quer verificar?
                   <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
+                </p>
+                <p className="text-xs mb-3" style={{ color: "var(--text-4)" }}>
+                  Escolha a opção que mais se parece com a sua situação
                 </p>
                 {/* Hidden input registrado no RHF */}
                 <input type="hidden" {...register("tipoCredito")} />
@@ -476,7 +493,7 @@ export default function FormularioAuditoria() {
               <div>
                 <label htmlFor="instituicao" className="block text-sm font-semibold mb-1.5"
                   style={{ color: "var(--text-2)" }}>
-                  Banco ou financeira
+                  Em qual banco está essa dívida?
                   <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                 </label>
                 <div className="inp-wrap">
@@ -487,7 +504,7 @@ export default function FormularioAuditoria() {
                   </div>
                   <input
                     id="instituicao" type="text"
-                    placeholder="Nubank, Itaú, Bradesco, Caixa..."
+                    placeholder="Ex: Nubank, Itaú, Bradesco, Caixa..."
                     {...register("instituicao")}
                     className={`inp has-pfx ${errors.instituicao ? "err" : ""}`}
                   />
@@ -497,10 +514,12 @@ export default function FormularioAuditoria() {
 
               {/* ── Valor + Prazo (2 colunas) ─────────────────────────── */}
               <div className="grid grid-cols-2 gap-4">
+
+                {/* Valor */}
                 <div>
                   <label htmlFor="valorDivida" className="block text-sm font-semibold mb-1.5"
                     style={{ color: "var(--text-2)" }}>
-                    Valor total do crédito
+                    Quanto você pegou emprestado?
                     <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                   </label>
                   <div className="inp-wrap">
@@ -513,15 +532,38 @@ export default function FormularioAuditoria() {
                     />
                   </div>
                   <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
-                    Valor que tomou emprestado, não as parcelas
+                    O total que você recebeu — não o valor da parcela
                   </p>
+                  <HelpTip label="Onde encontro esse valor?">
+                    <p className="font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                      Procure no contrato ou extrato por:
+                    </p>
+                    <ul className="space-y-1 mb-2">
+                      <li>→ <strong>&ldquo;Valor Financiado&rdquo;</strong></li>
+                      <li>→ <strong>&ldquo;Valor do Empréstimo&rdquo;</strong></li>
+                      <li>→ <strong>&ldquo;Valor Concedido&rdquo;</strong></li>
+                    </ul>
+                    <p
+                      className="text-xs"
+                      style={{
+                        color: "var(--text-4)",
+                        borderTop: "1px solid var(--bdr)",
+                        paddingTop: "0.5rem",
+                        marginTop: "0.5rem",
+                      }}
+                    >
+                      Exemplo: pegou R$&nbsp;10.000 para pagar em 24 parcelas?
+                      Coloque <strong>10000</strong> — não o valor das parcelas.
+                    </p>
+                  </HelpTip>
                   <FieldError msg={errors.valorDivida?.message} />
                 </div>
 
+                {/* Prazo */}
                 <div>
                   <label htmlFor="mesesAtraso" className="block text-sm font-semibold mb-1.5"
                     style={{ color: "var(--text-2)" }}>
-                    Prazo total
+                    Total de parcelas
                     <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                   </label>
                   <div className="inp-wrap">
@@ -539,19 +581,31 @@ export default function FormularioAuditoria() {
                     </p>
                   ) : (
                     <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
-                      Ex: 12, 24, 48 ou 60 meses
+                      Ex: 12, 24, 36 ou 60 parcelas
                     </p>
                   )}
+                  <HelpTip label="Não sei o total de parcelas">
+                    <p className="mb-1.5">
+                      Some todas as parcelas mensais. Se são{" "}
+                      <strong>24 vezes</strong>, coloque <strong>24</strong>.
+                    </p>
+                    <p>
+                      No contrato procure por:{" "}
+                      <strong>&ldquo;Prazo&rdquo;</strong>,{" "}
+                      <strong>&ldquo;Nº de Parcelas&rdquo;</strong> ou{" "}
+                      <strong>&ldquo;Duração&rdquo;</strong>.
+                    </p>
+                  </HelpTip>
                   <FieldError msg={errors.mesesAtraso?.message} />
                 </div>
               </div>
 
-              {/* ── Taxa de juros com toggle a.m./a.a. ───────────────── */}
+              {/* ── Taxa de juros ─────────────────────────────────────── */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label htmlFor="taxa-display" className="text-sm font-semibold"
                     style={{ color: "var(--text-2)" }}>
-                    Taxa de juros cobrada
+                    Qual a taxa de juros cobrada?
                     <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                   </label>
 
@@ -582,6 +636,22 @@ export default function FormularioAuditoria() {
                   </div>
                 </div>
 
+                {/* a.m. = ao mês / a.a. = ao ano — explicação inline */}
+                <p className="text-xs mb-2" style={{ color: "var(--text-4)" }}>
+                  {taxaIsAnual
+                    ? "Digite a taxa anual que aparece no contrato (ex: 79,8% a.a.)"
+                    : "Digite a taxa mensal que aparece no contrato (ex: 4,99% a.m.)"}
+                  {" — "}
+                  <button
+                    type="button"
+                    onClick={() => toggleTaxaMode()}
+                    className="underline cursor-pointer"
+                    style={{ color: "var(--blue)" }}
+                  >
+                    a taxa está {taxaIsAnual ? "ao mês" : "ao ano"}?
+                  </button>
+                </p>
+
                 {/* Hidden input para RHF */}
                 <input type="hidden" {...register("taxaJurosMensal")} />
 
@@ -593,7 +663,7 @@ export default function FormularioAuditoria() {
                     value={taxaDisplayStr}
                     onChange={e => handleTaxaInput(e.target.value)}
                     onBlur={() => trigger("taxaJurosMensal")}
-                    placeholder={taxaIsAnual ? "Ex: 54,00" : "Ex: 4,50"}
+                    placeholder={taxaIsAnual ? "Ex: 79,80" : "Ex: 4,99"}
                     className={`inp has-sfx ${errors.taxaJurosMensal ? "err" : ""}`}
                   />
                   <span className="inp-sfx text-xs font-bold" style={{ color: "var(--text-3)" }}>
@@ -619,13 +689,34 @@ export default function FormularioAuditoria() {
 
                 <FieldError msg={errors.taxaJurosMensal?.message} />
 
-                <HelpTip label="Como encontro a taxa no contrato ou fatura?">
-                  <p className="mb-2">
-                    <strong>Procure por:</strong> &ldquo;CET&rdquo;, &ldquo;taxa nominal&rdquo;, &ldquo;taxa contratada&rdquo; ou &ldquo;taxa de juros&rdquo; — no seu contrato, extrato ou fatura.
-                  </p>
-                  <p>
-                    Se a taxa estiver <strong>em % ao ano (a.a.)</strong>, clique no botão <strong>&ldquo;% a.a.&rdquo;</strong> ao lado do campo antes de digitar — o sistema converte automaticamente para mensal.
-                  </p>
+                <HelpTip label="Onde encontro a taxa de juros?">
+                  <div className="space-y-2.5">
+                    <div>
+                      <p className="font-semibold mb-1" style={{ color: "var(--text-2)" }}>Onde procurar:</p>
+                      <ul className="space-y-0.5">
+                        <li>📄 <strong>No contrato:</strong> procure &ldquo;Taxa de Juros&rdquo; ou &ldquo;CET&rdquo;</li>
+                        <li>📱 <strong>No app do banco:</strong> Empréstimos → Ver contrato</li>
+                        <li>🧾 <strong>Na fatura:</strong> seção &ldquo;Informações do Financiamento&rdquo;</li>
+                      </ul>
+                    </div>
+                    <div style={{ borderTop: "1px solid var(--bdr)", paddingTop: "0.5rem" }}>
+                      <p className="font-semibold mb-1" style={{ color: "var(--text-2)" }}>Como vai aparecer no papel:</p>
+                      <ul className="space-y-0.5">
+                        <li>→ <strong>&ldquo;4,99% a.m.&rdquo;</strong> (ao mês) — use o botão <strong>% a.m.</strong></li>
+                        <li>→ <strong>&ldquo;79,8% a.a.&rdquo;</strong> (ao ano) — use o botão <strong>% a.a.</strong></li>
+                      </ul>
+                    </div>
+                    <p
+                      className="text-xs"
+                      style={{
+                        color: "var(--text-4)",
+                        borderTop: "1px solid var(--bdr)",
+                        paddingTop: "0.5rem",
+                      }}
+                    >
+                      Dica: se aparecer mais de um número, use a <strong>&ldquo;Taxa Nominal&rdquo;</strong> — não o CET (que inclui outros custos além dos juros).
+                    </p>
+                  </div>
                 </HelpTip>
               </div>
 
@@ -633,7 +724,7 @@ export default function FormularioAuditoria() {
               <div>
                 <label htmlFor="dataContrato" className="block text-sm font-semibold mb-1.5"
                   style={{ color: "var(--text-2)" }}>
-                  Mês e ano do contrato
+                  Quando começou essa dívida?
                   <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                 </label>
                 <input type="hidden" {...register("dataContrato")} />
@@ -646,15 +737,22 @@ export default function FormularioAuditoria() {
                   />
                 </div>
                 <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
-                  Mês em que você assinou ou ativou o crédito
+                  Mês e ano em que você assinou o contrato ou fez a compra
                 </p>
+                <HelpTip label="Não sei a data exata">
+                  <p>
+                    Use o mês e ano aproximado — não precisa ser o dia exato. Está no contrato como{" "}
+                    <strong>&ldquo;Data de Contratação&rdquo;</strong> ou na fatura como a data do
+                    primeiro lançamento.
+                  </p>
+                </HelpTip>
                 <FieldError msg={errors.dataContrato?.message} />
               </div>
 
               {/* ── Botão continuar ───────────────────────────────────── */}
               <div className="pt-1">
                 <button type="button" onClick={avancarEtapa} className="btn-navy w-full py-3.5 text-base">
-                  Continuar
+                  Verificar meus juros
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -662,7 +760,7 @@ export default function FormularioAuditoria() {
               </div>
 
               <p className="text-xs text-center" style={{ color: "var(--text-4)" }}>
-                Nenhum CPF ou dado bancário é solicitado
+                Não pedimos CPF, senha ou qualquer dado bancário
               </p>
             </div>
           )}
@@ -686,32 +784,32 @@ export default function FormularioAuditoria() {
                     </svg>
                   </div>
                   <span className="text-xs font-bold uppercase tracking-wide" style={{ color: "var(--text-3)" }}>
-                    Dados informados
+                    Dados que você informou
                   </span>
                   <button
                     type="button" onClick={() => setEtapa(1)}
                     className="ml-auto text-xs underline cursor-pointer"
                     style={{ color: "var(--blue)" }}
                   >
-                    Editar
+                    Corrigir
                   </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
                   {tipoInfo && (
                     <div>
-                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Tipo de crédito</p>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Tipo de dívida</p>
                       <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{tipoInfo.label}</p>
                     </div>
                   )}
                   {instituicaoW && (
                     <div>
-                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Banco / financeira</p>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Banco</p>
                       <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{instituicaoW}</p>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Valor total</p>
+                    <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Valor emprestado</p>
                     <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{brl(valorWatch)}</p>
                   </div>
                   <div>
@@ -724,7 +822,7 @@ export default function FormularioAuditoria() {
                   </div>
                   {dataContrato && (
                     <div>
-                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Contrato</p>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Início</p>
                       <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>
                         {startLabel}{mesesWatch > 0 && endLabel ? ` → ${endLabel}` : ""}
                       </p>
@@ -732,18 +830,18 @@ export default function FormularioAuditoria() {
                   )}
                   {mesesWatch > 0 && (
                     <div>
-                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Prazo</p>
+                      <p className="text-xs mb-0.5" style={{ color: "var(--text-4)" }}>Duração</p>
                       <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{periodoLabel(mesesWatch)}</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* ── Nome ─────────────────────────────────────────────── */}
+              {/* ── Nome ──────────────────────────────────────────────── */}
               <div>
                 <label htmlFor="nome" className="block text-sm font-semibold mb-1.5"
                   style={{ color: "var(--text-2)" }}>
-                  Como quer ser chamado?
+                  Qual é o seu nome?
                   <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                 </label>
                 <div className="inp-wrap">
@@ -753,7 +851,7 @@ export default function FormularioAuditoria() {
                     </svg>
                   </div>
                   <input
-                    id="nome" type="text" placeholder="Maria da Silva"
+                    id="nome" type="text" placeholder="Ex: Maria da Silva"
                     {...register("nome")}
                     className={`inp has-pfx ${errors.nome ? "err" : ""}`}
                   />
@@ -765,7 +863,7 @@ export default function FormularioAuditoria() {
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold mb-1.5"
                   style={{ color: "var(--text-2)" }}>
-                  E-mail para receber o resultado gratuito
+                  Seu e-mail para receber o resultado
                   <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                 </label>
                 <div className="inp-wrap">
@@ -775,13 +873,13 @@ export default function FormularioAuditoria() {
                     </svg>
                   </div>
                   <input
-                    id="email" type="email" placeholder="maria@email.com"
+                    id="email" type="email" placeholder="Ex: maria@gmail.com"
                     {...register("email")}
                     className={`inp has-pfx ${errors.email ? "err" : ""}`}
                   />
                 </div>
                 <p className="mt-1.5 text-xs" style={{ color: "var(--text-4)" }}>
-                  Seu resultado gratuito será enviado aqui. Sem spam, jamais.
+                  Vamos enviar sua análise gratuita aqui. Nada de spam, prometemos.
                 </p>
                 <FieldError msg={errors.email?.message} />
               </div>
@@ -835,7 +933,7 @@ export default function FormularioAuditoria() {
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Você precisa aceitar os termos para continuar.
+                    Você precisa aceitar para continuar.
                   </p>
                 )}
               </div>
@@ -872,7 +970,7 @@ export default function FormularioAuditoria() {
                     </>
                   ) : (
                     <>
-                      Analisar minha dívida
+                      Ver minha análise gratuita
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                       </svg>
