@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { RespostaAnalise, StatusAuditoria } from "@/types";
 import { ROTULO_TIPO_CREDITO } from "@/config/constants";
+import { track } from "@/lib/track";
 
 /* ── Formatadores ─────────────────────────────────────────────────────────── */
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -183,7 +184,17 @@ export default function ResultadoAuditoria() {
   useEffect(() => {
     const raw = sessionStorage.getItem("auditoria_resultado");
     if (!raw) { setErro("Nenhuma análise encontrada. Preencha o formulário novamente."); return; }
-    try { setDados(JSON.parse(raw) as RespostaAnalise); }
+    try {
+      const parsed = JSON.parse(raw) as RespostaAnalise;
+      setDados(parsed);
+      /* ViewContent — usuário chegou ao resultado */
+      track("ViewContent", {
+        content_name: "ResultadoAuditoria",
+        content_category: parsed.resultado.status,
+        value: 19.90,
+        currency: "BRL",
+      });
+    }
     catch { setErro("Erro ao carregar o resultado. Preencha o formulário novamente."); }
   }, []);
 
@@ -421,6 +432,7 @@ export default function ResultadoAuditoria() {
               <a
                 href={process.env.NEXT_PUBLIC_CHECKOUT_URL}
                 className="btn-cta btn-pulse inline-flex w-full sm:w-auto py-4 px-8 text-base"
+                onClick={() => track("AddToCart", { content_name: "Relatorio Completo", value: 19.90, currency: "BRL", content_ids: ["relatorio-completo"] })}
               >
                 Quero o Relatório — R$&nbsp;19,90
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -451,7 +463,11 @@ export default function ResultadoAuditoria() {
             O relatório completo inclui o cálculo detalhado e orientações práticas para negociar
             uma taxa mais baixa. Bancos reduzem para clientes que chegam preparados.
           </p>
-          <a href={process.env.NEXT_PUBLIC_CHECKOUT_URL} className="btn-navy inline-flex px-6 py-3 text-sm">
+          <a
+            href={process.env.NEXT_PUBLIC_CHECKOUT_URL}
+            className="btn-navy inline-flex px-6 py-3 text-sm"
+            onClick={() => track("AddToCart", { content_name: "Relatorio Completo", value: 19.90, currency: "BRL", content_ids: ["relatorio-completo"] })}
+          >
             Ver Relatório Completo — R$&nbsp;19,90
           </a>
           <p className="mt-2 text-xs" style={{ color: "var(--text-4)" }}>Garantia de 7 dias</p>

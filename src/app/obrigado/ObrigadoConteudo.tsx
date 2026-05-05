@@ -1,10 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { track } from "@/lib/track";
 
 export default function ObrigadoConteudo() {
   const params = useSearchParams();
   const email  = params.get("email") ?? "";
+
+  /* ── Purchase — disparado uma vez ao montar a página de obrigado ─────── */
+  useEffect(() => {
+    track(
+      "Purchase",
+      { value: 19.90, currency: "BRL", content_name: "Relatorio Completo", content_ids: ["relatorio-completo"] },
+      email || undefined,
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-5">

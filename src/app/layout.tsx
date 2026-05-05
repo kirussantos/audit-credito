@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
+import Script from "next/script";
+import {
+  META_PIXEL_INIT_SCRIPT,
+  MetaPixelNoscript,
+  MetaPixelTracker,
+} from "@/components/MetaPixel";
 import "./globals.css";
 
 const ibm = IBM_Plex_Sans({
@@ -27,7 +33,19 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR" className={`${ibm.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* ── Meta Pixel init (afterInteractive = após hidratação React) ── */}
+        <Script
+          id="meta-pixel-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: META_PIXEL_INIT_SCRIPT }}
+        />
+        {/* Fallback para navegadores sem JS */}
+        <MetaPixelNoscript />
+        {/* PageView a cada navegação SPA + CAPI de cada página */}
+        <MetaPixelTracker />
+        {children}
+      </body>
     </html>
   );
 }

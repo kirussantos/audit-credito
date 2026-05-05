@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { schemaFormulario, FormularioData } from "@/lib/validations";
 import BarraProgresso from "./BarraProgresso";
+import { track, trackCustom } from "@/lib/track";
 
 /* ── Campos obrigatórios na etapa 1 ─────────────────────────────────────── */
 const CAMPOS_ETAPA_1 = [
@@ -312,6 +313,7 @@ export default function FormularioAuditoria() {
   /* ── Taxa toggle: a.m. ↔ a.a. ────────────────────────────────────────── */
   const [taxaIsAnual, setTaxaIsAnual] = useState(false);
   const [taxaDisplayStr, setTaxaDisplayStr] = useState("");
+  const primeiroToqueRef = useRef(false);
 
   const {
     register,
@@ -362,10 +364,20 @@ export default function FormularioAuditoria() {
     setTaxaIsAnual(p => !p);
   }
 
+  /* ── Primeiro toque no formulário → InitiateCheckout ─────────────────── */
+  function handlePrimeiroToque() {
+    if (primeiroToqueRef.current) return;
+    primeiroToqueRef.current = true;
+    track("InitiateCheckout", { content_name: "FormularioAuditoria" });
+  }
+
   /* ── Avançar etapa ────────────────────────────────────────────────────── */
   const avancarEtapa = async () => {
     const valido = await trigger([...CAMPOS_ETAPA_1]);
-    if (valido) setEtapa(2);
+    if (valido) {
+      setEtapa(2);
+      track("Lead", { content_name: "FormularioAuditoria", etapa: 2 });
+    }
   };
 
   /* ── Submissão ────────────────────────────────────────────────────────── */
@@ -375,6 +387,13 @@ export default function FormularioAuditoria() {
     setProcessando(true);
     setEtapaProcessamento(1);
     setErroEnvio(null);
+
+    /* Dispara evento de análise submetida */
+    trackCustom("AnaliseSubmetida", {
+      tipo_credito: data.tipoCredito,
+      instituicao: data.instituicao,
+      valor_divida: data.valorDivida,
+    });
 
     try {
       const res = await fetch("/api/calcular", {
@@ -418,7 +437,7 @@ export default function FormularioAuditoria() {
       <div className="w-full max-w-xl mx-auto">
         <StepIndicator etapa={etapa} />
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} onFocus={handlePrimeiroToque} noValidate>
 
           {/* ══════════ ETAPA 1 ══════════════════════════════════════════ */}
           {etapa === 1 && (
