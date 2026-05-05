@@ -161,9 +161,12 @@ export default function Home() {
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <a href="/" aria-label="AuditCrédito — página inicial"><Logo /></a>
-          <a href="/auditoria" className="btn-neon text-sm py-2.5 px-5">
-            Analisar agora
-          </a>
+          <div className="flex items-center gap-3">
+            <a href="/blog" className="text-sm hidden sm:block" style={{ color: "rgba(241,245,249,0.50)" }}>Blog</a>
+            <a href="/auditoria" className="btn-neon text-sm py-2.5 px-5">
+              Analisar agora
+            </a>
+          </div>
         </div>
       </header>
 
@@ -779,6 +782,7 @@ export default function Home() {
             <nav className="flex flex-wrap gap-5">
               {[
                 { label: "Fazer análise", href: "/auditoria" },
+                { label: "Blog", href: "/blog" },
                 { label: "Privacidade", href: "/politica-de-privacidade" },
                 { label: "Termos de Uso", href: "/termos-de-uso" },
                 { label: "Suporte", href: "mailto:suporte@auditcredito.com.br" },
