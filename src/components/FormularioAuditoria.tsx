@@ -170,7 +170,8 @@ function MonthPicker({ value, onChange, hasError, id }: {
 }) {
   const anoAtual = new Date().getFullYear();
   const mesAtual = new Date().getMonth() + 1;
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]       = useState(false);
+  const [flipped, setFlipped] = useState(false); // abre para cima quando não há espaço abaixo
   const [ano, setAno] = useState<number>(() => {
     if (value && /^\d{2}\/\d{4}$/.test(value)) return parseInt(value.split("/")[1]);
     return anoAtual;
@@ -179,11 +180,24 @@ function MonthPicker({ value, onChange, hasError, id }: {
 
   useEffect(() => {
     if (!open) return;
-    function handler(e: MouseEvent) {
+
+    /* ── Detecta se o dropdown cabe abaixo; se não, abre para cima ── */
+    if (wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setFlipped(spaceBelow < 310); // 310px ≈ altura do dropdown
+    }
+
+    /* ── Fecha ao clicar/tocar fora (mouse + touch) ── */
+    function handler(e: MouseEvent | TouchEvent) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
   }, [open]);
 
   const mesSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[0]) : null;
@@ -223,12 +237,16 @@ function MonthPicker({ value, onChange, hasError, id }: {
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 z-50 mt-1.5 w-64 rounded-2xl overflow-hidden"
+          className="absolute left-0 w-64 rounded-2xl overflow-hidden"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--bdr-2)",
             boxShadow: "0 12px 40px -4px rgba(13,27,42,0.18), 0 4px 12px rgba(0,0,0,0.08)",
-            top: "100%",
+            zIndex: 9999,
+            /* Abre para cima ou para baixo conforme espaço disponível */
+            ...(flipped
+              ? { bottom: "calc(100% + 6px)", top: "auto" }
+              : { top: "calc(100% + 6px)", bottom: "auto" }),
           }}
         >
           <div
