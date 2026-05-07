@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { RespostaAnalise, StatusAuditoria } from "@/types";
 import { ROTULO_TIPO_CREDITO } from "@/config/constants";
 import { track } from "@/lib/track";
+import { ga4ViewResultado, ga4BeginCheckout } from "@/lib/ga4";
 
 /* ── Formatadores ─────────────────────────────────────────────────────────── */
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -194,6 +195,8 @@ export default function ResultadoAuditoria() {
         value: 19.90,
         currency: "BRL",
       });
+      /* GA4 — resultado visualizado */
+      ga4ViewResultado(parsed.resultado.status, parsed.resultado.valorOriginal);
     }
     catch { setErro("Erro ao carregar o resultado. Preencha o formulário novamente."); }
   }, []);
@@ -432,7 +435,7 @@ export default function ResultadoAuditoria() {
               <a
                 href={process.env.NEXT_PUBLIC_CHECKOUT_URL}
                 className="btn-cta btn-pulse inline-flex w-full sm:w-auto py-4 px-8 text-base"
-                onClick={() => track("AddToCart", { content_name: "Relatorio Completo", value: 19.90, currency: "BRL", content_ids: ["relatorio-completo"] })}
+                onClick={() => { track("AddToCart", { content_name: "Relatorio Completo", value: 19.90, currency: "BRL", content_ids: ["relatorio-completo"] }); ga4BeginCheckout(); }}
               >
                 Quero o Relatório — R$&nbsp;19,90
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -466,7 +469,7 @@ export default function ResultadoAuditoria() {
           <a
             href={process.env.NEXT_PUBLIC_CHECKOUT_URL}
             className="btn-navy inline-flex px-6 py-3 text-sm"
-            onClick={() => track("AddToCart", { content_name: "Relatorio Completo", value: 19.90, currency: "BRL", content_ids: ["relatorio-completo"] })}
+            onClick={() => { track("AddToCart", { content_name: "Relatorio Completo", value: 19.90, currency: "BRL", content_ids: ["relatorio-completo"] }); ga4BeginCheckout(); }}
           >
             Ver Relatório Completo — R$&nbsp;19,90
           </a>

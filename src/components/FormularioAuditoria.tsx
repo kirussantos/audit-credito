@@ -7,6 +7,12 @@ import { useRouter } from "next/navigation";
 import { schemaFormulario, FormularioData } from "@/lib/validations";
 import BarraProgresso from "./BarraProgresso";
 import { track, trackCustom } from "@/lib/track";
+import {
+  ga4FormStart,
+  ga4SelectCreditType,
+  ga4StepComplete,
+  ga4FormSubmit,
+} from "@/lib/ga4";
 
 /* ── Campos obrigatórios na etapa 1 ─────────────────────────────────────── */
 const CAMPOS_ETAPA_1 = [
@@ -161,7 +167,7 @@ function StepIndicator({ etapa }: { etapa: 1 | 2 }) {
   );
 }
 
-/* ── MonthPicker ─────────────────────────────────────────────────────────── */
+/* ── MonthPicker — inline, sem posicionamento absoluto/fixo ──────────────── */
 function MonthPicker({ value, onChange, hasError, id }: {
   value: string;
   onChange: (v: string) => void;
@@ -170,39 +176,30 @@ function MonthPicker({ value, onChange, hasError, id }: {
 }) {
   const anoAtual = new Date().getFullYear();
   const mesAtual = new Date().getMonth() + 1;
-  const [open, setOpen]       = useState(false);
-  const [flipped, setFlipped] = useState(false); // abre para cima quando não há espaço abaixo
-  const [ano, setAno] = useState<number>(() => {
+  const [open, setOpen] = useState(false);
+  const [ano, setAno]   = useState<number>(() => {
     if (value && /^\d{2}\/\d{4}$/.test(value)) return parseInt(value.split("/")[1]);
     return anoAtual;
   });
   const wrapRef = useRef<HTMLDivElement>(null);
 
+  /* Fecha ao tocar/clicar fora */
   useEffect(() => {
     if (!open) return;
-
-    /* ── Detecta se o dropdown cabe abaixo; se não, abre para cima ── */
-    if (wrapRef.current) {
-      const rect = wrapRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setFlipped(spaceBelow < 310); // 310px ≈ altura do dropdown
-    }
-
-    /* ── Fecha ao clicar/tocar fora (mouse + touch) ── */
-    function handler(e: MouseEvent | TouchEvent) {
+    function onOutside(e: MouseEvent | TouchEvent) {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener("mousedown", handler);
-    document.addEventListener("touchstart", handler, { passive: true });
+    document.addEventListener("mousedown", onOutside);
+    document.addEventListener("touchstart", onOutside, { passive: true });
     return () => {
-      document.removeEventListener("mousedown", handler);
-      document.removeEventListener("touchstart", handler);
+      document.removeEventListener("mousedown", onOutside);
+      document.removeEventListener("touchstart", onOutside);
     };
   }, [open]);
 
-  const mesSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[0]) : null;
-  const anoSel = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[1]) : null;
-  const displayValue = mesSel && anoSel ? `${MESES[mesSel - 1]} / ${anoSel}` : "";
+  const mesSel     = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[0]) : null;
+  const anoSel     = value && /^\d{2}\/\d{4}$/.test(value) ? parseInt(value.split("/")[1]) : null;
+  const displayVal = mesSel && anoSel ? `${MESES[mesSel - 1]} / ${anoSel}` : "";
 
   function selectMes(mes: number) {
     onChange(`${String(mes).padStart(2, "0")}/${ano}`);
@@ -210,52 +207,55 @@ function MonthPicker({ value, onChange, hasError, id }: {
   }
 
   return (
-    <div ref={wrapRef} className="relative">
-      <button
-        id={id} type="button" onClick={() => setOpen(o => !o)}
-        className={`inp has-pfx has-sfx text-left cursor-pointer ${hasError ? "err" : ""}`}
-        style={{ color: displayValue ? "var(--text)" : "var(--text-4)" }}
-        aria-haspopup="listbox" aria-expanded={open}
-      >
-        {displayValue || "Clique para escolher o mês e o ano"}
-      </button>
-      <div className="inp-pfx pointer-events-none">
-        <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      </div>
-      <div className="inp-sfx pointer-events-none">
-        <svg
-          className="w-4 h-4 transition-transform duration-200"
-          style={{ color: "var(--text-4)", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+    <div ref={wrapRef}>
+      {/* ── Botão trigger ── */}
+      <div className="relative">
+        <button
+          id={id} type="button"
+          onClick={() => setOpen(o => !o)}
+          className={`inp has-pfx has-sfx text-left cursor-pointer w-full ${hasError ? "err" : ""}`}
+          style={{ color: displayVal ? "var(--text)" : "var(--text-4)" }}
+          aria-haspopup="listbox" aria-expanded={open}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+          {displayVal || "Clique para escolher o mês e o ano"}
+        </button>
+        <div className="inp-pfx pointer-events-none">
+          <svg className="w-4 h-4" style={{ color: "var(--text-4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div className="inp-sfx pointer-events-none">
+          <svg
+            className="w-4 h-4 transition-transform duration-200"
+            style={{ color: "var(--text-4)", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
 
+      {/* ── Picker inline — flui no documento, sem posicionamento absoluto ── */}
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 w-64 rounded-2xl overflow-hidden"
+          className="mt-2 rounded-2xl overflow-hidden anim-fade"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--bdr-2)",
-            boxShadow: "0 12px 40px -4px rgba(13,27,42,0.18), 0 4px 12px rgba(0,0,0,0.08)",
-            zIndex: 9999,
-            /* Abre para cima ou para baixo conforme espaço disponível */
-            ...(flipped
-              ? { bottom: "calc(100% + 6px)", top: "auto" }
-              : { top: "calc(100% + 6px)", bottom: "auto" }),
+            boxShadow: "0 4px 20px -4px rgba(13,27,42,0.12)",
           }}
         >
+          {/* Navegação de ano */}
           <div
             className="flex items-center justify-between px-4 py-3"
             style={{ borderBottom: "1px solid var(--bdr)", background: "var(--surface-2)" }}
           >
             <button
-              type="button" onClick={() => setAno(y => Math.max(1990, y - 1))} disabled={ano <= 1990}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+              type="button"
+              onClick={() => setAno(y => Math.max(1990, y - 1))}
+              disabled={ano <= 1990}
+              className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
               style={{ color: ano <= 1990 ? "var(--text-4)" : "var(--navy-mid)", background: ano <= 1990 ? "transparent" : "var(--surface-3)" }}
               aria-label="Ano anterior"
             >
@@ -265,8 +265,10 @@ function MonthPicker({ value, onChange, hasError, id }: {
             </button>
             <span className="font-bold text-base tabular-nums" style={{ color: "var(--text)" }}>{ano}</span>
             <button
-              type="button" onClick={() => setAno(y => Math.min(anoAtual, y + 1))} disabled={ano >= anoAtual}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
+              type="button"
+              onClick={() => setAno(y => Math.min(anoAtual, y + 1))}
+              disabled={ano >= anoAtual}
+              className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
               style={{ color: ano >= anoAtual ? "var(--text-4)" : "var(--navy-mid)", background: ano >= anoAtual ? "transparent" : "var(--surface-3)" }}
               aria-label="Próximo ano"
             >
@@ -276,6 +278,7 @@ function MonthPicker({ value, onChange, hasError, id }: {
             </button>
           </div>
 
+          {/* Grade de meses */}
           <div className="grid grid-cols-3 gap-1.5 p-3">
             {MESES.map((m, i) => {
               const mes = i + 1;
@@ -285,12 +288,12 @@ function MonthPicker({ value, onChange, hasError, id }: {
                 <button
                   key={m} type="button" role="option" aria-selected={sel} disabled={dis}
                   onClick={() => selectMes(mes)}
-                  className="rounded-xl py-2 text-sm font-semibold transition-all duration-150"
+                  className="rounded-xl py-2.5 text-sm font-semibold transition-all duration-150"
                   style={{
-                    background: sel ? "var(--navy-mid)" : "transparent",
+                    background: sel ? "var(--navy-mid)" : "var(--surface-2)",
                     color: sel ? "#fff" : dis ? "var(--text-4)" : "var(--text-2)",
                     cursor: dis ? "not-allowed" : "pointer",
-                    border: sel ? "none" : "1px solid transparent",
+                    border: sel ? "2px solid var(--navy-mid)" : "2px solid transparent",
                   }}
                 >
                   {m}
@@ -299,10 +302,12 @@ function MonthPicker({ value, onChange, hasError, id }: {
             })}
           </div>
 
+          {/* Limpar seleção */}
           {value && (
             <div style={{ borderTop: "1px solid var(--bdr)", padding: "0.5rem 0.75rem" }}>
               <button
-                type="button" onClick={() => { onChange(""); setOpen(false); }}
+                type="button"
+                onClick={() => { onChange(""); setOpen(false); }}
                 className="w-full text-center text-xs py-1.5 rounded-lg cursor-pointer"
                 style={{ color: "var(--text-3)", background: "transparent" }}
               >
@@ -382,11 +387,12 @@ export default function FormularioAuditoria() {
     setTaxaIsAnual(p => !p);
   }
 
-  /* ── Primeiro toque no formulário → InitiateCheckout ─────────────────── */
+  /* ── Primeiro toque no formulário → InitiateCheckout + GA4 ───────────── */
   function handlePrimeiroToque() {
     if (primeiroToqueRef.current) return;
     primeiroToqueRef.current = true;
     track("InitiateCheckout", { content_name: "FormularioAuditoria" });
+    ga4FormStart();
   }
 
   /* ── Avançar etapa ────────────────────────────────────────────────────── */
@@ -395,6 +401,7 @@ export default function FormularioAuditoria() {
     if (valido) {
       setEtapa(2);
       track("Lead", { content_name: "FormularioAuditoria", etapa: 2 });
+      ga4StepComplete(1, "dados_divida");
     }
   };
 
@@ -408,6 +415,11 @@ export default function FormularioAuditoria() {
 
     /* Dispara evento de análise submetida */
     trackCustom("AnaliseSubmetida", {
+      tipo_credito: data.tipoCredito,
+      instituicao: data.instituicao,
+      valor_divida: data.valorDivida,
+    });
+    ga4FormSubmit({
       tipo_credito: data.tipoCredito,
       instituicao: data.instituicao,
       valor_divida: data.valorDivida,
@@ -493,7 +505,7 @@ export default function FormularioAuditoria() {
                       <button
                         key={tipo.value}
                         type="button"
-                        onClick={() => setValue("tipoCredito", tipo.value, { shouldValidate: true, shouldDirty: true })}
+                        onClick={() => { setValue("tipoCredito", tipo.value, { shouldValidate: true, shouldDirty: true }); ga4SelectCreditType(tipo.value); }}
                         className="text-left rounded-xl p-3 border-2 transition-all duration-150 cursor-pointer"
                         style={{
                           background: sel ? "rgba(30,58,95,0.06)" : "var(--surface)",
@@ -765,14 +777,12 @@ export default function FormularioAuditoria() {
                   <span className="ml-0.5 text-xs" style={{ color: "var(--danger)" }}>*</span>
                 </label>
                 <input type="hidden" {...register("dataContrato")} />
-                <div className="inp-wrap">
-                  <MonthPicker
-                    id="dataContrato"
-                    value={dataContrato}
-                    onChange={v => setValue("dataContrato", v, { shouldValidate: true, shouldDirty: true })}
-                    hasError={!!errors.dataContrato}
-                  />
-                </div>
+                <MonthPicker
+                  id="dataContrato"
+                  value={dataContrato}
+                  onChange={v => setValue("dataContrato", v, { shouldValidate: true, shouldDirty: true })}
+                  hasError={!!errors.dataContrato}
+                />
                 <p className="mt-1 text-xs" style={{ color: "var(--text-4)" }}>
                   Mês e ano em que você assinou o contrato ou fez a compra
                 </p>
