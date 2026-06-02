@@ -66,6 +66,8 @@ export interface RespostaAnalise {
   taxaBCB: TaxaBCB;
   resultado: ResultadoCalculo;
   geradoEm: string;
+  /** Análise personalizada gerada por IA (adicionada antes de gerar o PDF) */
+  analiseIA?: import("@/lib/ai-analysis").AnaliseIA;
 }
 
 // ─── Cache interno ────────────────────────────────────────────────────────────

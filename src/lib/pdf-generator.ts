@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
 import type { RespostaAnalise, StatusAuditoria } from "@/types";
+import type { AnaliseIA } from "@/lib/ai-analysis";
 import { ROTULO_TIPO_CREDITO } from "@/config/constants";
 
 // ─── Paleta ───────────────────────────────────────────────────────────────────
@@ -304,12 +305,81 @@ function paginaResumo(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
   rodapePagina(doc, id);
 }
 
-// ─── PÁGINA 3 — Detalhamento técnico ─────────────────────────────────────────
+// ─── PÁGINA 3 — Análise Personalizada por IA ─────────────────────────────────
+
+function paginaAnaliseIA(doc: PDFKit.PDFDocument, dados: RespostaAnalise, ai: AnaliseIA) {
+  const { id } = dados;
+
+  cabecalhoPagina(doc, "Análise Personalizada — IA", 3, 6);
+
+  // Badge de risco
+  const risco = ai.riscoJuridico.toUpperCase();
+  const riscoColor = risco.startsWith("ALTO") ? C.danger
+    : risco.startsWith("MÉDIO") ? C.warning
+    : C.success;
+
+  const badgeY = doc.y;
+  doc.rect(MARGIN, badgeY, CW, 30).fill(riscoColor);
+  doc.fillColor(C.white).font("Helvetica-Bold").fontSize(10)
+    .text(`RISCO JURÍDICO: ${ai.riscoJuridico}`, MARGIN, badgeY + 9,
+      { width: CW, align: "center", lineBreak: false });
+  doc.y = badgeY + 42;
+
+  secao(doc, "Parecer Técnico Personalizado");
+  paragrafo(doc, ai.parecer);
+
+  secao(doc, "Fundamentação Legal Aplicável");
+  paragrafo(doc, ai.fundamentacao);
+
+  secao(doc, "Estratégia de Negociação Recomendada");
+  paragrafo(doc, ai.estrategiaNeg);
+
+  // Ação urgente — destaque
+  secao(doc, "Ação Prioritária — Próximos 7 Dias");
+  const acaoY = doc.y;
+  doc.rect(MARGIN, acaoY, CW, 52).fill(C.bgGray);
+  doc.rect(MARGIN, acaoY, 4, 52).fill(C.accent);
+  doc.fillColor(C.text).font("Helvetica").fontSize(9.5)
+    .text(ai.acaoRecomendada, MARGIN + 14, acaoY + 10,
+      { width: CW - 24, align: "justify" });
+  doc.y = acaoY + 64;
+
+  // Alertas especiais
+  secao(doc, "Alertas Específicos do Seu Caso");
+  for (const alerta of ai.alertasEspeciais) {
+    itemLista(doc, alerta);
+  }
+
+  // Estimativa de economia
+  if (ai.estimativaEconomia) {
+    divisor(doc);
+    const econY = doc.y;
+    doc.rect(MARGIN, econY, CW, 28).fill(C.success + "22");
+    doc.rect(MARGIN, econY, 4, 28).fill(C.success);
+    doc.fillColor(C.success).font("Helvetica-Bold").fontSize(10)
+      .text(ai.estimativaEconomia, MARGIN + 14, econY + 7,
+        { width: CW - 24, lineBreak: false });
+    doc.y = econY + 38;
+  }
+
+  // Rodapé IA
+  doc.moveDown(0.8);
+  doc.fillColor(C.gray).font("Helvetica").fontSize(7.5)
+    .text(
+      `Análise gerada por ${ai.geradoPor} com base nos dados informados. ` +
+      "Não substitui orientação de advogado especializado.",
+      MARGIN, doc.y, { width: CW, align: "center" },
+    );
+
+  rodapePagina(doc, id);
+}
+
+// ─── PÁGINA 4 — Detalhamento técnico (era página 3) ──────────────────────────
 
 function paginaDetalhamento(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
   const { resultado, id } = dados;
 
-  cabecalhoPagina(doc, "Detalhamento Técnico", 3, 5);
+  cabecalhoPagina(doc, "Detalhamento Técnico", 4, 6);
 
   secao(doc, "O que é a taxa média do Banco Central?");
   paragrafo(doc,
@@ -406,7 +476,7 @@ function paginaDetalhamento(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
 function paginaOrientacoes(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
   const { id, instituicao, nome, contrato, resultado } = dados;
 
-  cabecalhoPagina(doc, "Orientações e Próximos Passos", 4, 5);
+  cabecalhoPagina(doc, "Orientações e Próximos Passos", 5, 6);
 
   secao(doc, "Como negociar diretamente com o banco");
   itemLista(doc, "Reúna seu contrato e os comprovantes de pagamentos realizados.");
@@ -498,7 +568,7 @@ function paginaOrientacoes(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
 function paginaReferencias(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
   const { id, taxaBCB } = dados;
 
-  cabecalhoPagina(doc, "Referências e Glossário", 5, 5);
+  cabecalhoPagina(doc, "Referências e Glossário", 6, 6);
 
   secao(doc, "Fontes e links úteis");
 
@@ -561,16 +631,22 @@ function paginaReferencias(doc: PDFKit.PDFDocument, dados: RespostaAnalise) {
 // ─── Exportação principal ─────────────────────────────────────────────────────
 
 export async function gerarRelatorioPDF(dados: RespostaAnalise): Promise<Buffer> {
+  // Importa gerador de IA dinamicamente (server-only)
+  const { gerarAnaliseIA } = await import("@/lib/ai-analysis");
+  const ai = dados.analiseIA ?? (await gerarAnaliseIA(dados));
+
   return new Promise((resolve, reject) => {
+    const pageOpts = { margins: { top: 0, bottom: 40, left: MARGIN, right: MARGIN } };
+
     const doc = new PDFDocument({
       size: "A4",
-      margins: { top: 0, bottom: 40, left: MARGIN, right: MARGIN },
+      ...pageOpts,
       info: {
         Title:    "Relatório de Análise Comparativa de Taxas de Juros",
         Author:   "AuditCrédito",
-        Subject:  "Análise educacional de taxas de crédito",
+        Subject:  "Análise educacional de taxas de crédito com IA",
         Creator:  "AuditCrédito — Ferramenta educacional independente",
-        Keywords: "juros, crédito, banco central, análise, comparativo",
+        Keywords: "juros, crédito, banco central, análise, comparativo, IA",
       },
       bufferPages: true,
     });
@@ -580,14 +656,27 @@ export async function gerarRelatorioPDF(dados: RespostaAnalise): Promise<Buffer>
     doc.on("end",   ()              => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
+    // Página 1 — Capa
     paginaCapa(doc, dados);
-    doc.addPage({ margins: { top: 0, bottom: 40, left: MARGIN, right: MARGIN } });
+
+    // Página 2 — Resumo da Análise
+    doc.addPage(pageOpts);
     paginaResumo(doc, dados);
-    doc.addPage({ margins: { top: 0, bottom: 40, left: MARGIN, right: MARGIN } });
+
+    // Página 3 — Análise Personalizada por IA (NOVA)
+    doc.addPage(pageOpts);
+    paginaAnaliseIA(doc, dados, ai);
+
+    // Página 4 — Detalhamento Técnico
+    doc.addPage(pageOpts);
     paginaDetalhamento(doc, dados);
-    doc.addPage({ margins: { top: 0, bottom: 40, left: MARGIN, right: MARGIN } });
+
+    // Página 5 — Orientações e Próximos Passos
+    doc.addPage(pageOpts);
     paginaOrientacoes(doc, dados);
-    doc.addPage({ margins: { top: 0, bottom: 40, left: MARGIN, right: MARGIN } });
+
+    // Página 6 — Referências e Glossário
+    doc.addPage(pageOpts);
     paginaReferencias(doc, dados);
 
     doc.end();
