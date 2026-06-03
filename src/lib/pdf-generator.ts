@@ -146,7 +146,7 @@ function row(
   doc.fillColor(C.text);
 }
 
-/** Caixa de destaque com borda lateral */
+/** Caixa de destaque com borda lateral — altura medida com heightOfString */
 function box(
   doc: PDFKit.PDFDocument,
   texto: string,
@@ -156,13 +156,15 @@ function box(
   w = CW,
   x = MARGIN,
 ) {
-  if (doc.y >= BODY_BOT - 28) return;
-  const h = Math.max(20, Math.ceil((texto.length / ((w - 18) / (fs * 0.55))) + 1) * (fs + 3) + 8);
-  const y = doc.y;
+  if (!texto?.trim() || doc.y >= BODY_BOT - 28) return;
+  const innerW = w - 20;
+  const textH  = doc.font("Helvetica").fontSize(fs).heightOfString(texto.trim(), { width: innerW });
+  const h      = textH + 14;
+  const y      = doc.y;
   doc.rect(x, y, w, h).fill(corFundo);
   doc.rect(x, y, 3, h).fill(corBorda);
   doc.fillColor(C.text).font("Helvetica").fontSize(fs)
-    .text(texto.trim(), x + 10, y + 5, { width: w - 16, align: "justify" });
+    .text(texto.trim(), x + 10, y + 7, { width: innerW, align: "justify" });
   doc.y = y + h + S.gap;
   doc.fillColor(C.text);
 }
@@ -536,18 +538,20 @@ function paginaLaudoJuridico1(doc: PDFKit.PDFDocument, dados: RespostaAnalise, a
   sec(doc, "Fundamentação Jurídica Aplicável");
   pars(doc, ai.fundamentacaoLegal, F.body);
 
-  // ── Precedentes (3 em layout compacto) ───────────────────────────────────
+  // ── Precedentes (layout com heightOfString) ───────────────────────────────
   sec(doc, "Precedentes Judiciais Relevantes");
   for (let i = 0; i < ai.precedentesJudiciais.length; i++) {
-    const py = doc.y;
-    const ph = Math.max(22, Math.ceil(ai.precedentesJudiciais[i].length / 72) * (F.body + 3) + 10);
+    if (doc.y >= BODY_BOT - 30) break;
+    const py   = doc.y;
+    const txtW = CW - 28;
+    const ph   = doc.font("Helvetica").fontSize(F.body).heightOfString(ai.precedentesJudiciais[i], { width: txtW }) + 14;
     doc.rect(MARGIN, py, CW, ph).fill(i % 2 === 0 ? C.bgGray : C.white);
     doc.rect(MARGIN, py, 3, ph).fill(C.primary);
     doc.rect(MARGIN + 3, py, 18, ph).fill(C.primary + "22");
     doc.fillColor(C.primary).font("Helvetica-Bold").fontSize(F.label)
       .text(String(i + 1), MARGIN + 3, py + (ph - F.label) / 2, { width: 18, align: "center", lineBreak: false });
     doc.fillColor(C.text).font("Helvetica").fontSize(F.body)
-      .text(ai.precedentesJudiciais[i], MARGIN + 24, py + 5, { width: CW - 28 });
+      .text(ai.precedentesJudiciais[i], MARGIN + 24, py + 7, { width: txtW });
     doc.y = py + ph + 3;
     doc.fillColor(C.text);
   }
@@ -591,16 +595,20 @@ function paginaLaudoJuridico2(doc: PDFKit.PDFDocument, dados: RespostaAnalise, a
   sec(doc, "Cenários de Restituição e Recuperação");
   pars(doc, ai.cenarioRestituicao, F.body);
 
-  // ── Estimativa de economia ────────────────────────────────────────────────
-  const econY = doc.y;
-  const econH = Math.max(28, Math.ceil(ai.estimativaEconomia.length / 80) * (F.body + 3) + 12);
-  doc.rect(MARGIN, econY, CW, econH).fill(C.successL);
-  doc.rect(MARGIN, econY, 3, econH).fill(C.success);
-  doc.fillColor(C.success).font("Helvetica-Bold").fontSize(F.label)
-    .text("ESTIMATIVA DE ECONOMIA:", MARGIN + 8, econY + 5, { lineBreak: false });
-  doc.fillColor(C.dark).font("Helvetica").fontSize(F.body)
-    .text(ai.estimativaEconomia, MARGIN + 8, econY + 16, { width: CW - 16 });
-  doc.y = econY + econH + 6;
+  // ── Estimativa de economia (altura com heightOfString) ───────────────────
+  if (doc.y < BODY_BOT - 40 && ai.estimativaEconomia?.trim()) {
+    const econY    = doc.y;
+    const econInW  = CW - 16;
+    const econTxtH = doc.font("Helvetica").fontSize(F.body).heightOfString(ai.estimativaEconomia, { width: econInW });
+    const econH    = econTxtH + 22;
+    doc.rect(MARGIN, econY, CW, econH).fill(C.successL);
+    doc.rect(MARGIN, econY, 3, econH).fill(C.success);
+    doc.fillColor(C.success).font("Helvetica-Bold").fontSize(F.label)
+      .text("ESTIMATIVA DE ECONOMIA:", MARGIN + 8, econY + 5, { lineBreak: false });
+    doc.fillColor(C.dark).font("Helvetica").fontSize(F.body)
+      .text(ai.estimativaEconomia, MARGIN + 8, econY + 16, { width: econInW });
+    doc.y = econY + econH + 6;
+  }
 
   // ── Vias disponíveis (tabela compacta) ───────────────────────────────────
   sec(doc, "Vias de Contestação — Da Mais Simples à Mais Formal");
@@ -702,12 +710,14 @@ function paginaRoteiro(doc: PDFKit.PDFDocument, dados: RespostaAnalise, ai: Anal
 
   if (secoes.length > 1) {
     for (const s of secoes) {
+      if (doc.y >= BODY_BOT - 30) break;
       const match = s.match(/^[(\[]?(\d+)[)\.]?\s*(.*)/s);
       if (match) {
-        const num  = match[1];
-        const cont = match[2].trim();
-        const y    = doc.y;
-        const sh   = Math.max(22, Math.ceil(cont.length / 74) * (F.body + 2) + 10);
+        const num   = match[1];
+        const cont  = match[2].trim();
+        const y     = doc.y;
+        const contW = CW - 30;
+        const sh    = doc.font("Helvetica").fontSize(F.body).heightOfString(cont, { width: contW }) + 12;
 
         doc.rect(MARGIN, y, CW, sh).fill(parseInt(num) % 2 === 0 ? C.bgGray : C.white);
         doc.rect(MARGIN, y, 3, sh).fill(C.primary);
@@ -715,7 +725,7 @@ function paginaRoteiro(doc: PDFKit.PDFDocument, dados: RespostaAnalise, ai: Anal
         doc.fillColor(C.primary).font("Helvetica-Bold").fontSize(F.label)
           .text(num, MARGIN + 3, y + (sh - F.label) / 2, { width: 20, align: "center", lineBreak: false });
         doc.fillColor(C.text).font("Helvetica").fontSize(F.body)
-          .text(cont, MARGIN + 26, y + 5, { width: CW - 30, align: "justify" });
+          .text(cont, MARGIN + 26, y + 6, { width: contW, align: "justify" });
         doc.y = y + sh + 2;
         doc.fillColor(C.text);
       } else {
@@ -806,16 +816,18 @@ function paginaPlanoAcao(doc: PDFKit.PDFDocument, dados: RespostaAnalise, ai: An
 
   const alertasCores = [C.warningL, C.bgGray];
   for (let i = 0; i < ai.alertasEspeciais.length; i++) {
-    const alerta = ai.alertasEspeciais[i];
-    const ay     = doc.y;
-    const ah     = Math.max(18, Math.ceil(alerta.length / 86) * (F.body + 2) + 9);
+    if (doc.y >= BODY_BOT - 22) break;
+    const alerta  = ai.alertasEspeciais[i];
+    const ay      = doc.y;
+    const alertaW = CW - 30;
+    const ah      = doc.font("Helvetica").fontSize(F.body).heightOfString(alerta, { width: alertaW }) + 12;
 
     doc.rect(MARGIN, ay, CW, ah).fill(alertasCores[i % 2]);
     doc.rect(MARGIN, ay, 3, ah).fill(C.danger);
     doc.fillColor(C.warning).font("Helvetica-Bold").fontSize(F.small)
       .text(`! ${i + 1}`, MARGIN + 6, ay + 4, { lineBreak: false });
     doc.fillColor(C.text).font("Helvetica").fontSize(F.body)
-      .text(alerta, MARGIN + 24, ay + 4, { width: CW - 30 });
+      .text(alerta, MARGIN + 24, ay + 6, { width: alertaW });
 
     doc.y = ay + ah + 2;
     doc.fillColor(C.text);

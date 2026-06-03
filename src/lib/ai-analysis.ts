@@ -13,8 +13,8 @@ import { ROTULO_TIPO_CREDITO } from "@/config/constants";
 
 const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
 const MODEL           = "meta/llama-3.1-8b-instruct";
-const TIMEOUT_MS      = 45_000;   // 45s — margem segura dentro do limite Vercel de 60s
-const MAX_TOKENS      = 2_048;    // rápido e completo o suficiente para 8 páginas
+const TIMEOUT_MS      = 52_000;   // 52s — margem segura dentro do limite Vercel de 60s
+const MAX_TOKENS      = 3_500;    // mais tokens = mais conteúdo por página
 
 // ─── Interface completa ───────────────────────────────────────────────────────
 
@@ -101,7 +101,7 @@ Data de referência do contrato: ${dataRef}
 ═══ INSTRUÇÃO: PRODUZA O LAUDO EM JSON — RETORNE SOMENTE O JSON ═══
 
 {
-  "diagnostico": "ESCREVA 4-5 frases técnicas de diagnóstico preciso deste caso específico. Mencione ${nome}, ${instituicao}, ${tipo}, taxa de ${taxaCobr}% a.m. versus referência BCB de ${taxaBCBm}% a.m., excesso de ${excesso}% e diferença de ${difBRL}. Explique o impacto prático dessa diferença para o cliente.",
+  "diagnostico": "ESCREVA 6-8 frases técnicas e detalhadas de diagnóstico deste caso. Mencione ${nome}, ${instituicao}, ${tipo}, taxa de ${taxaCobr}% a.m. versus referência BCB de ${taxaBCBm}% a.m., excesso de ${excesso}%, diferença de ${difBRL}. Explique o impacto financeiro prático, cite a base legal e conclua com a recomendação principal.",
 
   "riscoJuridico": "FORMATO OBRIGATÓRIO: 'ALTO — [justificativa de 1 frase baseada nos dados reais do caso]' OU 'MÉDIO — [justificativa]' OU 'BAIXO — [justificativa]'",
 
@@ -109,7 +109,7 @@ Data de referência do contrato: ${dataRef}
 
   "probabilidadeSucesso": "FORMATO: 'ALTA (75-85%) — [justificativa específica para este caso]' OU 'MÉDIA (50-65%) — ...' OU 'BAIXA (30-45%) — ...'",
 
-  "fundamentacaoLegal": "ESCREVA 3 PARÁGRAFOS separados por dois saltos de linha. PARÁGRAFO 1: Base legal primária — cite ${refLegal} e CDC arts. 6ºV, 39V, 51IV explicando como cada norma se aplica a ${tipo}. PARÁGRAFO 2: Jurisprudência — Súmula 297/STJ (CDC aplicável a bancos), acórdãos do STJ sobre taxas abusivas em ${tipo}, precedentes favoráveis ao consumidor. PARÁGRAFO 3: Aplicação concreta — como ${nome} usa o excesso de ${excesso}% sobre a taxa BCB como fundamento jurídico contra ${instituicao}, o que deve provar e como.",
+  "fundamentacaoLegal": "ESCREVA 4 PARÁGRAFOS separados por dois saltos de linha. PARÁGRAFO 1: Base legal primária — cite ${refLegal}, CDC arts. 6ºV, 39V, 51IV, explicando detalhadamente como cada norma se aplica ao caso de ${tipo}. PARÁGRAFO 2: Jurisprudência consolidada — Súmula 297/STJ, REsp 1.061.530/RS (recurso repetitivo sobre taxas bancárias), REsp 1.061.530/RS, e como o STJ definiu que a comparação com a média BCB é o critério adequado para aferir abusividade. PARÁGRAFO 3: Regulação do BCB — Resolução BCB 4.197/2013 (CET obrigatório), Resolução CMN 3.517/2007 (transparência), obrigações de disclosure que ${instituicao} descumpriu ou deveria cumprir. PARÁGRAFO 4: Aplicação concreta ao caso — como ${nome} usa o excesso de ${excesso}% sobre a taxa BCB série SGS ${taxaBCB.codigoSerie} como prova documental idônea, o que precisa provar, quais argumentos do banco rebater e como.",
 
   "precedentesJudiciais": [
     "STJ — [Súmula ou REsp específico com número]: [ementa resumida em 2 linhas diretamente aplicável a ${tipo}]",
@@ -125,13 +125,13 @@ Data de referência do contrato: ${dataRef}
     "Acesso a canais de reclamação: Res. BCB 4.433/2015 (ouvidoria obrigatória) — [como exercer esse direito contra ${instituicao}]"
   ],
 
-  "impactoFinanceiro": "ESCREVA 2-3 PARÁGRAFOS. PARÁGRAFO 1: O que ${difBRL} representa concretamente — salários mínimos equivalentes, meses de pagamento, o que esse valor compraria. PARÁGRAFO 2: Como ${difPP}pp a mais ao mês se transforma em ${difBRL} em ${meses} meses pela força dos juros compostos — explique de forma acessível para leigos. PARÁGRAFO 3 (inclua): Oportunidade de custo — o que o consumidor poderia ter feito com esse valor ou como ele impactou o endividamento.",
+  "impactoFinanceiro": "ESCREVA 3 PARÁGRAFOS DETALHADOS. PARÁGRAFO 1: O que ${difBRL} representa concretamente para ${nome} — quantos salários mínimos equivale (salário mínimo = R$ 1.412,00), meses de pagamentos feitos exclusivamente por excesso de taxa, o que esse valor poderia ter comprado ou pago. PARÁGRAFO 2: Matemática dos juros compostos explicada para leigo — como ${difPP}pp a mais ao mês se transforma em ${difBRL} em ${meses} meses, o efeito exponencial, por que diferenças pequenas na taxa geram impactos grandes no total. PARÁGRAFO 3: Impacto no endividamento e oportunidade de custo — como o excesso de cobranças contribuiu para manter ou aumentar o saldo devedor, e o que ${nome} poderia ter feito com esses recursos se estivessem disponíveis.",
 
-  "cenarioRestituicao": "ESCREVA 2 PARÁGRAFOS. PARÁGRAFO 1: O que é possível conseguir concretamente — abatimento no saldo devedor atual, devolução de valores pagos a mais nos últimos 5 anos, redução das parcelas futuras — específico para ${tipo} com ${instituicao} com estimativas realistas. PARÁGRAFO 2: Vias disponíveis por ordem de facilidade — negociação direta (mais rápida), ouvidoria (10 dias úteis), consumidor.gov.br, Procon, JEC (sem advogado até 40 salários mínimos), ação judicial — com vantagens e tempo médio de cada uma.",
+  "cenarioRestituicao": "ESCREVA 3 PARÁGRAFOS DETALHADOS. PARÁGRAFO 1: O que é possível conseguir concretamente em negociação com ${instituicao} — abatimento no saldo devedor atual (mais provável), devolução em crédito na conta de valores pagos a mais (possível), redução das parcelas futuras para taxa de mercado — com estimativas realistas de porcentagem de sucesso por via. PARÁGRAFO 2: Via extrajudicial — como funciona a negociação direta, ouvidoria e consumidor.gov.br para casos como este, o que esperar de prazo e resultado, como documentar o processo. PARÁGRAFO 3: Via judicial — JEC sem advogado para causas até 40 salários mínimos (R$ 56.480), o que apresentar como prova, o que pedir na petição, prazo médio de sentença e taxa de sucesso em casos análogos.",
 
-  "estrategiaCompleta": "ESCREVA 4 PARÁGRAFOS DISTINTOS. PARÁGRAFO 1: Perfil de ${instituicao} — como esse banco costuma responder a pedidos de revisão de ${tipo}, receptividade histórica, argumentos que costumam usar para negar. PARÁGRAFO 2: Abordagem inicial — canal exato, horário, postura recomendada, documentos a ter em mãos, linguagem a usar. PARÁGRAFO 3: Escalada — se sem resposta em 10 dias, como acionar a ouvidoria, Procon e consumidor.gov.br simultaneamente. PARÁGRAFO 4: Argumento central irrefutável — como apresentar a comparação BCB (${taxaBCBm}% vs ${taxaCobr}%) como dado oficial do próprio governo que o banco não pode contestar.",
+  "estrategiaCompleta": "ESCREVA 5 PARÁGRAFOS DETALHADOS. PARÁGRAFO 1: Perfil de ${instituicao} em revisões de ${tipo} — como o banco historicamente responde a pedidos de revisão, qual é o argumento mais comum que usa para negar, qual canal costuma ser mais receptivo. PARÁGRAFO 2: Preparação antes do contato — exatamente quais documentos reunir (contrato, extratos, comprovantes, CET), como organizá-los, o que calcular antes de ligar. PARÁGRAFO 3: Abordagem inicial — canal preferencial, horário de melhor atendimento, tom de voz recomendado, as primeiras palavras exatas a dizer para ser direcionado ao setor correto. PARÁGRAFO 4: Escalada progressiva — sequência exata se o SAC negar (ouvidoria → consumidor.gov.br → Procon → BCB), com tempo de espera entre cada passo e como manter pressão sem ser agressivo. PARÁGRAFO 5: Argumento financeiro irrefutável — como apresentar a taxa BCB (${taxaBCBm}% a.m.) vs taxa cobrada (${taxaCobr}% a.m.) como dado oficial do governo que nenhum banco pode contestar, e como usar isso como âncora de negociação.",
 
-  "roteirNegociacao": "ESCREVA SCRIPT COMPLETO com no mínimo 6 parágrafos numerados. (1) Abertura: como se identificar, tom de voz, o que pedir imediatamente (falar com setor de renegociação/retenção). (2) Apresentação do laudo: como mencionar os dados do BCB de forma simples e impactante sem usar termos técnicos. (3) Resposta à objeção 'a taxa é contratual': argumento assertivo com base no CDC. (4) Resposta à objeção 'não podemos alterar': como mencionar o direito de revisão e os órgãos reguladores. (5) Solicitação de escalada: o que dizer exatamente para falar com supervisor ou registrar na ouvidoria. (6) Encerramento: como registrar protocolo, confirmar prazo de retorno e próximos passos se não houver resposta.",
+  "roteirNegociacao": "ESCREVA SCRIPT DE NEGOCIAÇÃO com exatamente 7 partes numeradas, cada uma com mais de 3 linhas de orientação. (1) Abertura e identificação: o que dizer exatamente ao ser atendido, como pedir o setor de renegociação, tom de voz profissional e firme. (2) Apresentação do problema: como explicar a situação usando dados do BCB de forma simples, sem jargão, que o atendente entenda imediatamente. (3) Proposta inicial: o que pedir especificamente — revisão da taxa para a média BCB, abatimento no saldo, redução das parcelas. (4) Resposta à objeção 'a taxa foi contratada': como rebater com CDC e Súmula 297/STJ de forma acessível. (5) Resposta à objeção 'nossa política não permite revisão': como escalar para supervisor e exigir protocolo formal. (6) Se houver recusa: o que dizer sobre registro na ouvidoria, consumidor.gov.br e BCB — com calma mas firmeza. (7) Encerramento de qualquer ligação: exatamente o que obter antes de desligar — número de protocolo, nome do atendente, data prevista de retorno.",
 
   "canaisRecomendados": [
     "${instituicao} — Atendimento / Retenção: [número de telefone geral ou SAC, app ou site] — Solicitar: [palavras exatas para pedir renegociação da taxa de ${tipo}]",
@@ -182,8 +182,11 @@ REGRAS ABSOLUTAS — VIOLAÇÃO INVALIDA O LAUDO:
 6. direitosConsumidor: EXATAMENTE 5 itens no array
 7. acoes7Dias, acoes30Dias, acoes90Dias: EXATAMENTE 3 itens cada
 8. canaisRecomendados: EXATAMENTE 4 itens no array
-9. fundamentacaoLegal e estrategiaCompleta: MÍNIMO 3 parágrafos cada
-10. roteirNegociacao: MÍNIMO 5 parágrafos numerados`;
+9. fundamentacaoLegal: MÍNIMO 4 parágrafos
+10. estrategiaCompleta: MÍNIMO 5 parágrafos
+11. roteirNegociacao: EXATAMENTE 7 partes numeradas (1) a (7)
+12. impactoFinanceiro e cenarioRestituicao: MÍNIMO 3 parágrafos cada
+13. diagnostico: MÍNIMO 6 frases detalhadas`;
 }
 
 // ─── Chamada à API NVIDIA ─────────────────────────────────────────────────────
