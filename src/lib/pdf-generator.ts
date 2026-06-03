@@ -58,7 +58,9 @@ const HEADER_H = 44;           // era 110 → compacto
 const FOOTER_H = 26;
 const BODY_TOP = HEADER_H + 10; // início do conteúdo após header
 const BODY_BOT = H - FOOTER_H - 6; // fim antes do rodapé
-const PAGE_OPTS = { margins: { top: 0, bottom: FOOTER_H + 4, left: MARGIN, right: MARGIN } };
+// bottom:0 → desabilita auto-page-break do PDFKit.
+// Cada página é adicionada manualmente; guards em BODY_BOT evitam overflow.
+const PAGE_OPTS = { margins: { top: 0, bottom: 0, left: MARGIN, right: MARGIN } };
 
 // Fontes
 const F = { h1: 11, h2: 9, body: 8, small: 7, label: 7.5, mono: 7.5 };
@@ -101,6 +103,7 @@ function rodape(doc: PDFKit.PDFDocument, id: string) {
 
 /** Barra de seção compacta */
 function sec(doc: PDFKit.PDFDocument, titulo: string, cor = C.primary) {
+  if (doc.y >= BODY_BOT - 22) return;
   const y = doc.y;
   doc.rect(MARGIN, y, CW, S.sect).fill(cor);
   doc.fillColor(C.white).font("Helvetica-Bold").fontSize(F.small)
@@ -111,7 +114,7 @@ function sec(doc: PDFKit.PDFDocument, titulo: string, cor = C.primary) {
 
 /** Parágrafo compacto */
 function par(doc: PDFKit.PDFDocument, texto: string, fs = F.body, w = CW, x = MARGIN) {
-  if (!texto?.trim()) return;
+  if (!texto?.trim() || doc.y >= BODY_BOT - 12) return;
   doc.font("Helvetica").fontSize(fs).fillColor(C.text)
     .text(texto.trim(), x, doc.y, { width: w, align: "justify" });
   doc.y += S.para;
@@ -132,6 +135,7 @@ function row(
   w = CW,
   x = MARGIN,
 ) {
+  if (doc.y >= BODY_BOT - 14) return;
   if (alt) doc.rect(x, doc.y, w, S.row).fill(C.bgGray);
   const ry = doc.y + 2.5;
   doc.fillColor(C.gray).font("Helvetica").fontSize(F.label)
@@ -152,6 +156,7 @@ function box(
   w = CW,
   x = MARGIN,
 ) {
+  if (doc.y >= BODY_BOT - 28) return;
   const h = Math.max(20, Math.ceil((texto.length / ((w - 18) / (fs * 0.55))) + 1) * (fs + 3) + 8);
   const y = doc.y;
   doc.rect(x, y, w, h).fill(corFundo);
@@ -174,6 +179,7 @@ function badge(doc: PDFKit.PDFDocument, texto: string, cor: string, h = 22) {
 
 /** Item de lista com bullet colorido compacto */
 function item(doc: PDFKit.PDFDocument, texto: string, cor = C.accent, x = MARGIN, w = CW) {
+  if (doc.y >= BODY_BOT - 12) return;
   const y = doc.y;
   doc.fillColor(cor).font("Helvetica-Bold").fontSize(F.body)
     .text("•", x + 2, y, { lineBreak: false });
@@ -184,6 +190,7 @@ function item(doc: PDFKit.PDFDocument, texto: string, cor = C.accent, x = MARGIN
 
 /** Item numerado compacto */
 function itemNum(doc: PDFKit.PDFDocument, n: number, texto: string, cor = C.accent, x = MARGIN, w = CW) {
+  if (doc.y >= BODY_BOT - 16) return;
   const y = doc.y;
   doc.rect(x, y, 16, 14).fill(cor);
   doc.fillColor(C.white).font("Helvetica-Bold").fontSize(F.small)
@@ -747,6 +754,17 @@ function paginaPlanoAcao(doc: PDFKit.PDFDocument, dados: RespostaAnalise, ai: An
 
   const FW = (CW - 10) / 3;
 
+  // Calcular alturas reais por texto (chars/36 = linhas estimadas)
+  const lineHAcao = 10;
+  const acaoMinH  = 20;
+  const getAcaoH  = (t: string) => Math.max(acaoMinH, Math.ceil(t.length / 36) * lineHAcao + 4) + 3;
+  const colHeight = (acoes: string[]) => acoes.reduce((s, a) => s + getAcaoH(a), 0);
+  const maxColH   = Math.max(...fases.map(([, a]) => colHeight(a)));
+
+  // Cap para caber na página (deixa espaço para alertas abaixo)
+  const availH  = Math.min(maxColH, BODY_BOT - doc.y - 140);
+  const totalH  = Math.max(availH, acaoMinH * 3);
+
   // Headers das fases
   const hY = doc.y;
   for (let i = 0; i < 3; i++) {
@@ -757,35 +775,27 @@ function paginaPlanoAcao(doc: PDFKit.PDFDocument, dados: RespostaAnalise, ai: An
   }
   doc.y = hY + 28;
 
-  // Conteúdo das ações
-  const acaoStartY = doc.y;
-  const acaoH      = 20;
-
-  // Calcular altura total necessária
-  const maxAcoes = Math.max(...fases.map(([,a]) => a.length));
-  const totalH   = maxAcoes * (acaoH + 3);
-
   // Fundo dos painéis
+  const acaoStartY = doc.y;
   for (let i = 0; i < 3; i++) {
     const fx = MARGIN + i * (FW + 5);
     doc.rect(fx, acaoStartY, FW, totalH + 8).fill(fases[i][3]);
   }
 
-  // Ações em cada coluna
+  // Ações em cada coluna (parar em BODY_BOT - 10 para não vazar)
   for (let i = 0; i < 3; i++) {
     const fx    = MARGIN + i * (FW + 5);
     const acoes = fases[i][1];
     const cor   = fases[i][2];
-    let ay     = acaoStartY + 5;
+    let ay      = acaoStartY + 5;
 
     for (const acao of acoes) {
-      // Bullet colorido
+      if (ay >= BODY_BOT - 30) break;
       doc.fillColor(cor).font("Helvetica-Bold").fontSize(F.body)
         .text("›", fx + 5, ay, { lineBreak: false });
       doc.fillColor(C.text).font("Helvetica").fontSize(F.small)
         .text(acao, fx + 15, ay, { width: FW - 20 });
-      const linesNeeded = Math.ceil(acao.length / 36);
-      ay += Math.max(acaoH, linesNeeded * 10 + 4);
+      ay += getAcaoH(acao);
     }
   }
   doc.y = acaoStartY + totalH + 14;

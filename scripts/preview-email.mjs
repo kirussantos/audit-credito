@@ -67,7 +67,8 @@ const HEADER_H = 44;
 const FOOTER_H = 26;
 const BODY_TOP = HEADER_H + 10;
 const BODY_BOT = H - FOOTER_H - 6;
-const PAGE_OPTS = { margins: { top: 0, bottom: FOOTER_H + 4, left: MARGIN, right: MARGIN } };
+// bottom:0 → desabilita auto-page-break do PDFKit; páginas adicionadas manualmente.
+const PAGE_OPTS = { margins: { top: 0, bottom: 0, left: MARGIN, right: MARGIN } };
 
 const F = { h1: 11, h2: 9, body: 8, small: 7, label: 7.5, mono: 7.5 };
 const S = { sect: 14, row: 12.5, gap: 5, para: 4 };
@@ -101,6 +102,7 @@ function rodape(doc, id) {
 }
 
 function sec(doc, titulo, cor = C.primary) {
+  if (doc.y >= BODY_BOT - 22) return;
   const y = doc.y;
   doc.rect(MARGIN, y, CW, S.sect).fill(cor);
   doc.fillColor(C.white).font("Helvetica-Bold").fontSize(F.small)
@@ -110,7 +112,7 @@ function sec(doc, titulo, cor = C.primary) {
 }
 
 function par(doc, texto, fs = F.body, w = CW, x = MARGIN) {
-  if (!texto?.trim()) return;
+  if (!texto?.trim() || doc.y >= BODY_BOT - 12) return;
   doc.font("Helvetica").fontSize(fs).fillColor(C.text)
     .text(texto.trim(), x, doc.y, { width: w, align: "justify" });
   doc.y += S.para;
@@ -122,6 +124,7 @@ function pars(doc, texto, fs = F.body, w = CW, x = MARGIN) {
 }
 
 function row(doc, label, valor, alt, w = CW, x = MARGIN) {
+  if (doc.y >= BODY_BOT - 14) return;
   if (alt) doc.rect(x, doc.y, w, S.row).fill(C.bgGray);
   const ry = doc.y + 2.5;
   doc.fillColor(C.gray).font("Helvetica").fontSize(F.label)
@@ -133,6 +136,7 @@ function row(doc, label, valor, alt, w = CW, x = MARGIN) {
 }
 
 function box(doc, texto, corBorda, corFundo, fs = F.body, w = CW, x = MARGIN) {
+  if (doc.y >= BODY_BOT - 28) return;
   const h = Math.max(20, Math.ceil((texto.length / ((w - 18) / (fs * 0.55))) + 1) * (fs + 3) + 8);
   const y = doc.y;
   doc.rect(x, y, w, h).fill(corFundo);
@@ -153,6 +157,7 @@ function badge(doc, texto, cor, h = 22) {
 }
 
 function itemBullet(doc, texto, cor = C.accent, x = MARGIN, w = CW) {
+  if (doc.y >= BODY_BOT - 12) return;
   const y = doc.y;
   doc.fillColor(cor).font("Helvetica-Bold").fontSize(F.body).text("•", x + 2, y, { lineBreak: false });
   doc.fillColor(C.text).font("Helvetica").fontSize(F.body).text(texto, x + 12, y, { width: w - 14 });
@@ -160,6 +165,7 @@ function itemBullet(doc, texto, cor = C.accent, x = MARGIN, w = CW) {
 }
 
 function itemNum(doc, n, texto, cor = C.accent, x = MARGIN, w = CW) {
+  if (doc.y >= BODY_BOT - 16) return;
   const y = doc.y;
   doc.rect(x, y, 16, 14).fill(cor);
   doc.fillColor(C.white).font("Helvetica-Bold").fontSize(F.small)
@@ -680,6 +686,16 @@ function gerarPDF(ai) {
       ["MESES 2-3\nCONSOLIDAÇÃO",    ai.acoes90Dias||[], C.accent,  C.bgBlue],
     ];
     const FW = (CW-10)/3;
+
+    // Calcular alturas reais por item (evita caixas undersized)
+    const lineHAcao = 10, acaoMinH = 20;
+    const getAcaoH  = t => Math.max(acaoMinH, Math.ceil(t.length/36)*lineHAcao+4)+3;
+    const colHeight = acoes => acoes.reduce((s,a) => s+getAcaoH(a), 0);
+    const maxColH   = Math.max(...fases.map(([,a]) => colHeight(a)));
+    const availH    = Math.min(maxColH, BODY_BOT - doc.y - 140);
+    const totalH7   = Math.max(availH, acaoMinH*3);
+
+    // Headers
     const hY7 = doc.y;
     for (let i=0; i<3; i++) {
       const fx = MARGIN + i*(FW+5);
@@ -689,21 +705,22 @@ function gerarPDF(ai) {
     }
     doc.y = hY7 + 28;
 
+    // Fundos dos painéis
     const acaoStartY = doc.y;
-    const maxAcoes = Math.max(...fases.map(([,a]) => a.length));
-    const totalH7 = maxAcoes * 24;
     for (let i=0; i<3; i++) {
       const fx = MARGIN + i*(FW+5);
       doc.rect(fx, acaoStartY, FW, totalH7+8).fill(fases[i][3]);
     }
+
+    // Conteúdo das ações
     for (let i=0; i<3; i++) {
       const fx = MARGIN + i*(FW+5), acoes = fases[i][1], cor = fases[i][2];
       let ay = acaoStartY + 5;
       for (const acao of acoes) {
+        if (ay >= BODY_BOT - 30) break;
         doc.fillColor(cor).font("Helvetica-Bold").fontSize(F.body).text("›", fx+5, ay, { lineBreak:false });
         doc.fillColor(C.text).font("Helvetica").fontSize(F.small).text(acao, fx+15, ay, { width:FW-20 });
-        const lines = Math.ceil(acao.length/36);
-        ay += Math.max(22, lines*10+4);
+        ay += getAcaoH(acao);
       }
     }
     doc.y = acaoStartY + totalH7 + 14; doc.fillColor(C.text);
