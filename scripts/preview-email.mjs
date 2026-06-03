@@ -189,107 +189,75 @@ async function gerarAnaliseIA() {
 
   const salMinimo = 1412;
   const salEquiv  = (r.diferencaAbusiva / salMinimo).toFixed(1);
+  const taxaACobr = parseFloat(taxaAnual);
 
-  const prompt = `Você é Dr. Roberto Fonseca, advogado sênior com 20 anos de experiência exclusiva em direito bancário e do consumidor no Brasil. Produziu mais de 8.000 laudos técnicos, é professor da FGV Direito SP, e conhece em profundidade as táticas de negociação de todos os grandes bancos brasileiros. Seu laudo é referência de qualidade: detalhado, preciso, útil e persuasivo.
+  const prompt = `Você é Dr. Roberto Fonseca, advogado sênior especialista em direito bancário e do consumidor. Produziu mais de 8.000 laudos técnicos e conhece em profundidade as táticas de negociação dos grandes bancos brasileiros.
 
-═══ DADOS REAIS DO CASO — USE APENAS ESSES NÚMEROS ═══
+DADOS REAIS DO CASO (use APENAS estes números):
+- Cliente: ${d.nome} | Banco: ${d.instituicao} | Modalidade: Crédito Pessoal
+- Principal: ${brl(r.valorOriginal)} | Período: ${r.periodoMeses} meses
+- Taxa cobrada: ${pct(r.taxaCobrada,4)} a.m. (${taxaAnual}% a.a. efetivo)
+- Taxa BCB SGS ${d.taxaBCB.codigoSerie}: ${pct(r.taxaMediaBCB,4)} a.m. (ref. ${d.taxaBCB.data})
+- Excesso: ${pct(r.percentualExcesso,2)} | Diferença: ${brl(r.diferencaAbusiva)} | Equivale a ${salEquiv} salários mínimos
+- Data contrato: ${fmtMY(d.contrato.dataContrato)}
 
-Cliente: ${d.nome}
-Banco / Instituição: ${d.instituicao}
-Modalidade: Crédito Pessoal
-Principal financiado: ${brl(r.valorOriginal)}
-Taxa cobrada: ${pct(r.taxaCobrada,4)} a.m. (${taxaAnual}% a.a. efetivo)
-Taxa média BCB série SGS ${d.taxaBCB.codigoSerie}: ${pct(r.taxaMediaBCB,4)} a.m. — referência ${d.taxaBCB.data}
-Excesso sobre a média BCB: ${pct(r.percentualExcesso,2)} (diferença de ${difPP}pp ao mês)
-Diferença financeira total: ${brl(r.diferencaAbusiva)} em ${r.periodoMeses} meses
-Equivalência: ${salEquiv} salários mínimos (SM = R$ ${salMinimo.toLocaleString("pt-BR")})
-Data de referência do contrato: ${fmtMY(d.contrato.dataContrato)}
-
-═══ INSTRUÇÃO: RETORNE SOMENTE O JSON ABAIXO PREENCHIDO — ZERO TEXTO FORA DO JSON ═══
-
+RETORNE SOMENTE JSON VÁLIDO (zero texto fora do JSON):
 {
-  "diagnostico": "ESCREVA 7-8 FRASES TÉCNICAS. Mencione especificamente ${d.nome}, ${d.instituicao}, crédito pessoal, taxa de ${pct(r.taxaCobrada,4)} a.m. versus referência BCB de ${pct(r.taxaMediaBCB,4)} a.m. (série SGS ${d.taxaBCB.codigoSerie}), excesso de ${pct(r.percentualExcesso,2)}, diferença de ${brl(r.diferencaAbusiva)} em ${r.periodoMeses} meses. Explique o impacto financeiro concreto, mencione que equivale a ${salEquiv} salários mínimos, cite a base legal aplicável e conclua com a recomendação principal.",
-
-  "riscoJuridico": "ALTO — [justificativa de 1 frase específica baseada nos dados reais: taxa ${pct(r.taxaCobrada,4)} vs BCB ${pct(r.taxaMediaBCB,4)}, excesso ${pct(r.percentualExcesso,2)}, fundamento legal]",
-
+  "diagnostico": "[Escreva 7-8 frases técnicas sobre ${d.nome}, ${d.instituicao}, crédito pessoal, taxa ${pct(r.taxaCobrada,4)}% a.m. vs BCB ${pct(r.taxaMediaBCB,4)}% a.m. série SGS ${d.taxaBCB.codigoSerie}, excesso ${pct(r.percentualExcesso,2)}, diferença ${brl(r.diferencaAbusiva)} em ${r.periodoMeses} meses = ${salEquiv} salários mínimos, fundamento legal CDC/STJ e recomendação]",
+  "riscoJuridico": "[ALTO/MÉDIO/BAIXO — justificativa 1 frase com dados reais do caso]",
   "nivelRisco": "ALTO",
-
-  "probabilidadeSucesso": "ALTA (75-85%) — [justificativa específica: por que este excesso de ${pct(r.percentualExcesso,2)} e estes dados do BCB dão alta probabilidade de êxito]",
-
-  "fundamentacaoLegal": "PARÁGRAFO 1 (base legal): O CDC (Lei 8.078/90), aplicável às instituições financeiras pela Súmula 297/STJ, garante ao consumidor revisão de cláusulas com prestações desproporcionais (art. 6º, V), proíbe vantagem manifestamente excessiva (art. 39, V) e prevê nulidade de cláusulas abusivas (art. 51, IV). A Resolução BCB 4.197/2013 exige divulgação do CET, cujo descumprimento configura violação regulatória adicional.\\n\\nPARÁGRAFO 2 (jurisprudência STJ): A Súmula 297/STJ consolida a aplicação do CDC aos contratos bancários. O REsp 1.061.530/RS (Recurso Repetitivo) estabeleceu que taxas de juros podem ser revistas quando comprovada onerosidade excessiva por comparação com as médias BCB. A Súmula 382/STJ define que a comparação com a média de mercado é o critério adequado — exatamente o que este laudo demonstra com os dados da série SGS ${d.taxaBCB.codigoSerie}.\\n\\nPARÁGRAFO 3 (regulação BCB): A Resolução CMN 3.517/2007 exige transparência na divulgação do CET. A Resolução BCB 4.433/2015 obriga ouvidoria com prazo de 10 dias úteis. O excesso de ${pct(r.percentualExcesso,2)} sobre a média oficial do BCB pode configurar violação das normas de conduta do Sistema Financeiro Nacional, passível de denúncia ao próprio Banco Central.\\n\\nPARÁGRAFO 4 (aplicação ao caso): ${d.nome} possui como prova documental idônea os dados públicos do BCB (série SGS ${d.taxaBCB.codigoSerie}), que são governamentais, verificáveis e atualizados mensalmente. A diferença de ${pct(r.percentualExcesso,2)} acima da média — resultando em ${brl(r.diferencaAbusiva)} a mais em ${r.periodoMeses} meses — constitui prova concreta de onerosidade excessiva que fundamenta pedido de revisão junto ao ${d.instituicao} e, se necessário, ação no Juizado Especial Cível.",
-
+  "probabilidadeSucesso": "[ALTA/MÉDIA/BAIXA (percentual) — justificativa específica para este excesso de ${pct(r.percentualExcesso,2)}]",
+  "fundamentacaoLegal": "[PARÁGRAFO 1: CDC arts. 6ºV 39V 51IV e como se aplicam a crédito pessoal de ${d.instituicao}.\\n\\nPARÁGRAFO 2: Súmula 297/STJ, REsp 1.061.530/RS (repetitivo), Súmula 382/STJ e aplicação à taxa ${pct(r.taxaCobrada,4)}% vs BCB ${pct(r.taxaMediaBCB,4)}%.\\n\\nPARÁGRAFO 3: Res. BCB 4.197/2013 (CET obrigatório), Res. CMN 3.517/2007 (transparência), obrigações descumpridas por ${d.instituicao}.\\n\\nPARÁGRAFO 4: Como ${d.nome} usa a série SGS ${d.taxaBCB.codigoSerie} como prova e o que argumentar contra ${d.instituicao}.]",
   "precedentesJudiciais": [
-    "STJ — Súmula 297: 'O Código de Defesa do Consumidor é aplicável às instituições financeiras' — fundamento principal para revisão de todo contrato bancário, incluindo crédito pessoal como este caso",
-    "STJ — REsp 1.061.530/RS (Recurso Repetitivo, vinculante): estabelece que taxas bancárias são revisáveis quando demonstrada onerosidade excessiva por comparação com médias BCB — precedente direto e vinculante para este caso",
-    "STJ — Súmula 382: a comparação com a taxa média do BCB é o critério juridicamente adequado para aferir abusividade em juros bancários — valida exatamente a metodologia usada neste laudo com a série SGS ${d.taxaBCB.codigoSerie}"
+    "[STJ — Súmula 297 com ementa resumida e aplicação direta a este caso de crédito pessoal]",
+    "[STJ — REsp 1.061.530/RS (Recurso Repetitivo) com ementa e como fundamenta a revisão desta taxa]",
+    "[STJ — Súmula 382 ou outro precedente relevante sobre abusividade de juros bancários com dado específico]"
   ],
-
   "direitosConsumidor": [
-    "Direito à informação plena: art. 6º, III, CDC — ${d.instituicao} deveria ter informado claramente o CET (Custo Efetivo Total) e a taxa anual equivalente de ${taxaAnual}% antes da assinatura do contrato",
-    "Direito à revisão de cláusulas onerosas: art. 6º, V, CDC — a cláusula de taxa de ${pct(r.taxaCobrada,4)} a.m., superior em ${pct(r.percentualExcesso,2)} à média BCB, é revisável por estabelecer prestação desproporcional",
-    "Proteção contra vantagem excessiva: art. 39, V, CDC — cobrar ${difPP}pp a mais ao mês do que a média de mercado ao longo de ${r.periodoMeses} meses configura vantagem manifestamente excessiva vedada pelo CDC",
-    "Nulidade de cláusulas abusivas: art. 51, IV, CDC — cláusulas que geram desequilíbrio expressivo entre as partes podem ser declaradas nulas, com restituição dos valores cobrados a mais",
-    "Acesso à ouvidoria com prazo garantido: Res. BCB 4.433/2015 — ${d.instituicao} é obrigado por lei a responder em 10 dias úteis; o descumprimento pode ser reportado ao Banco Central"
+    "[Direito 1 com artigo CDC específico e aplicação concreta a ${d.instituicao} e taxa ${pct(r.taxaCobrada,4)}%]",
+    "[Direito 2 com artigo CDC e como o excesso de ${pct(r.percentualExcesso,2)} viola esse direito]",
+    "[Direito 3 com artigo CDC e como ${brl(r.diferencaAbusiva)} configura violação]",
+    "[Direito 4 com artigo CDC sobre nulidade de cláusulas abusivas aplicado ao contrato]",
+    "[Direito 5 sobre ouvidoria Res. BCB 4.433/2015 e prazo de 10 dias úteis obrigatório]"
   ],
-
-  "impactoFinanceiro": "PARÁGRAFO 1 (representação concreta): A diferença de ${brl(r.diferencaAbusiva)} representa ${salEquiv} salários mínimos (SM = R$ ${salMinimo.toLocaleString("pt-BR")}) — dinheiro que ${d.nome} pagou pelo simples fato de ter contratado a uma taxa ${pct(r.percentualExcesso,2)} acima do que o mercado praticava. Em termos práticos, esse valor poderia quitar meses de financiamento, cobrir despesas essenciais ou ser investido com retorno significativo.\\n\\nPARÁGRAFO 2 (matemática dos juros compostos explicada): A diferença de ${difPP}pp ao mês pode parecer pequena, mas os juros compostos têm efeito exponencial — cada décimo de ponto percentual se acumula mês a mês sobre um saldo crescente. Em ${r.periodoMeses} meses, essa diferença se transformou em ${brl(r.diferencaAbusiva)} a mais, calculado pela fórmula M = P × (1+i)ⁿ: com a taxa cobrada de ${pct(r.taxaCobrada,4)} a.m. vs. a taxa justa de ${pct(r.taxaMediaBCB,4)} a.m., o montante final é significativamente diferente.\\n\\nPARÁGRAFO 3 (oportunidade de custo e endividamento): Além do impacto direto, esse excesso de cobrança pode ter contribuído para manter ${d.nome} endividado por mais tempo, já que parcelas maiores reduzem menos o principal. O valor de ${brl(r.diferencaAbusiva)}, se disponível, poderia ter sido usado para amortizar o contrato antecipadamente, reduzindo o prazo e o total pago — uma oportunidade perdida pelo excesso de taxa cobrado.",
-
-  "cenarioRestituicao": "PARÁGRAFO 1 (negociação direta com ${d.instituicao}): Em uma negociação bem-sucedida, ${d.nome} pode obter: (a) abatimento de até ${brl(r.diferencaAbusiva)} no saldo devedor atual — mais provável se o contrato ainda estiver ativo; (b) crédito em conta correspondente aos valores pagos a mais — possível em negociações com documentação sólida; (c) redução das parcelas futuras para a taxa de mercado BCB — frequente em acordos supervisionados pela ouvidoria. A receptividade de ${d.instituicao} aumenta significativamente quando o consumidor apresenta dados do BCB por escrito.\\n\\nPARÁGRAFO 2 (via extrajudicial — passo a passo): A via extrajudicial é a mais rápida e menos custosa. SAC do banco: resposta em até 5 dias úteis (não obrigatório por lei, mas frequente). Ouvidoria: 10 dias úteis obrigatórios pela Res. BCB 4.433/2015 — não cumprimento pode ser reportado ao BCB. consumidor.gov.br: empresa tem 10 dias corridos para responder — taxa de resolução dos grandes bancos supera 80% nessa plataforma quando há dados concretos. Procon: mediação gratuita em 30-60 dias, com poder de aplicar multas ao banco.\\n\\nPARÁGRAFO 3 (via judicial — JEC): Se as vias extrajudiciais não resolverem, o Juizado Especial Cível permite ajuizar ação sem advogado para causas até 40 salários mínimos (R$ 56.480). A petição deve apresentar: este laudo, extratos do contrato, comprovantes de pagamento e protocolos das tentativas extrajudiciais. A taxa de sucesso em revisões de taxa com comparação BCB documentada é historicamente superior a 70% no JEC.",
-
-  "estrategiaCompleta": "PARÁGRAFO 1 (perfil de ${d.instituicao}): O Banco Bradesco, como grande banco privado, possui departamentos estruturados de retenção e renegociação. Historicamente, responde com mais receptividade quando o cliente apresenta dados concretos e comparativos, em vez de apenas reclamar. Nas revisões de crédito pessoal, o banco tende a oferecer reduções parciais de taxa ou abatimento no saldo como primeiro movimento — sempre proponha em cima disso, pedindo a adequação à taxa BCB.\\n\\nPARÁGRAFO 2 (preparação antes do contato): Antes de ligar, organize: (1) número do contrato; (2) valor original e taxa cobrada; (3) taxa BCB de ${pct(r.taxaMediaBCB,4)} a.m. anotada; (4) diferença calculada de ${brl(r.diferencaAbusiva)}; (5) este laudo impresso ou no celular. Ligue de preferência em dias de semana pela manhã, quando o tempo de espera é menor e o atendente tem mais disponibilidade.\\n\\nPARÁGRAFO 3 (abordagem inicial — canal e linguagem): Ao ser atendido, solicite imediatamente o setor de renegociação ou retenção. Não use termos jurídicos neste primeiro contato — fale de forma simples: 'Tenho um estudo baseado nos dados do Banco Central mostrando que estou pagando ${pct(r.taxaCobrada,2)}% ao mês enquanto a média é ${pct(r.taxaMediaBCB,2)}%, e quero discutir uma revisão.' Tom firme, objetivo e documentado é mais eficaz do que tom emocional.\\n\\nPARÁGRAFO 4 (escalada progressiva): Se o SAC negar ou não der retorno em 5 dias, acione a ouvidoria formalmente — cite o protocolo do SAC e mencione que irá registrar no consumidor.gov.br. Se a ouvidoria também não resolver em 10 dias úteis, registre simultaneamente no consumidor.gov.br e no Banco Central. Essa escalada paralela cria pressão institucional que os grandes bancos levam a sério por questões de reputação e métricas regulatórias.\\n\\nPARÁGRAFO 5 (argumento financeiro central e irrefutável): O dado-chave que o banco não pode contestar é a série SGS ${d.taxaBCB.codigoSerie} do Banco Central — fonte oficial, pública e verificável por qualquer pessoa no site do BCB. Apresente assim: 'Segundo o próprio Banco Central do Brasil, a taxa média para crédito pessoal no período do meu contrato era de ${pct(r.taxaMediaBCB,4)}% ao mês. Meu contrato prevê ${pct(r.taxaCobrada,4)}% ao mês — ${pct(r.percentualExcesso,2)} acima da média oficial. Isso gerou uma cobrança extra de ${brl(r.diferencaAbusiva)} em ${r.periodoMeses} meses.' Com esse argumento, o banco precisa apresentar justificativa específica para a diferença ou negociar.",
-
-  "roteirNegociacao": "(1) ABERTURA E IDENTIFICAÇÃO: 'Bom dia/tarde, meu nome é ${d.nome}, CPF [seu CPF], sou cliente do Bradesco com contrato de crédito pessoal número [número do contrato]. Preciso ser direcionado ao setor de renegociação ou retenção de contratos. Tenho um estudo de comparação de taxa com dados do Banco Central e quero discutir uma revisão.'\\n\\n(2) APRESENTAÇÃO DO PROBLEMA COM DADOS: 'Realizei uma análise comparativa usando os dados oficiais do Banco Central do Brasil. Meu contrato prevê uma taxa de ${pct(r.taxaCobrada,4)}% ao mês. Segundo o BCB — que é o órgão regulador do sistema financeiro —, a taxa média para crédito pessoal no período do meu contrato era de ${pct(r.taxaMediaBCB,4)}% ao mês. Estou pagando ${pct(r.percentualExcesso,2)}% a mais do que a média do mercado, o que gerou uma diferença de ${brl(r.diferencaAbusiva)} ao longo do contrato.'\\n\\n(3) PROPOSTA FORMAL: 'Solicito formalmente a revisão da taxa do meu contrato para adequação à média de mercado divulgada pelo BCB, com o correspondente abatimento no saldo devedor. Quero que essa solicitação seja registrada e que eu receba um protocolo formal de atendimento.'\\n\\n(4) RESPOSTA À OBJEÇÃO 'A TAXA FOI CONTRATADA': 'Entendo que a taxa está prevista em contrato. Porém, o Código de Defesa do Consumidor — aplicável a bancos pela Súmula 297 do STJ — garante ao consumidor o direito de revisar cláusulas que estabeleçam prestações desproporcionais em relação ao mercado. A comparação com a média BCB é exatamente o critério definido pelo STJ para avaliar se uma taxa é desproporcional.'\\n\\n(5) RESPOSTA À OBJEÇÃO 'NOSSA POLÍTICA NÃO PERMITE REVISÃO': 'Compreendo que a política interna pode ter limitações. Mas preciso que essa negativa fique formalmente registrada. Solicito o número de protocolo desta conversa e seu nome. Vou acionar a ouvidoria do banco, que tem prazo obrigatório de 10 dias úteis para resposta, conforme Resolução BCB 4.433/2015. Também vou registrar no consumidor.gov.br e no Banco Central se necessário.'\\n\\n(6) ESCALADA PARA SUPERVISOR: 'Posso falar com seu supervisor ou com alguém do setor de ouvidoria agora? Tenho documentação completa, incluindo os dados do BCB, extratos e um laudo técnico. Prefiro resolver isso diretamente, mas estou preparado para usar todos os canais regulatórios disponíveis.'\\n\\n(7) ENCERRAMENTO DE QUALQUER LIGAÇÃO: 'Antes de finalizar, preciso de: (1) número de protocolo desta conversa; (2) seu nome completo e matrícula para registro; (3) data prevista para retorno ou prazo de análise. Se não receber retorno no prazo informado, voltarei a ligar e iniciarei os registros formais na ouvidoria e nos órgãos regulatórios.'",
-
+  "impactoFinanceiro": "[PARÁGRAFO 1: O que ${brl(r.diferencaAbusiva)} = ${salEquiv} salários mínimos representa concretamente para ${d.nome} — o que poderia ter comprado, pago ou investido.\\n\\nPARÁGRAFO 2: Matemática dos juros compostos explicada para leigo — como ${difPP}pp a mais ao mês resultou em ${brl(r.diferencaAbusiva)} em ${r.periodoMeses} meses pela fórmula M=P×(1+i)^n.\\n\\nPARÁGRAFO 3: Impacto no endividamento — como o excesso manteve ${d.nome} endividado mais tempo e reduziu menos o principal em cada parcela.]",
+  "cenarioRestituicao": "[PARÁGRAFO 1: O que é possível conseguir em negociação com ${d.instituicao} — abatimento no saldo, crédito em conta, redução de parcelas futuras — com estimativas realistas de porcentagem de sucesso por via.\\n\\nPARÁGRAFO 2: Via extrajudicial passo a passo — SAC (prazo), ouvidoria (10 dias úteis obrigatórios Res. BCB 4.433/2015), consumidor.gov.br (10 dias corridos, alta taxa de resolução em grandes bancos), Procon (30-60 dias).\\n\\nPARÁGRAFO 3: Via judicial — JEC sem advogado até 40 SM (R$ 56.480), o que apresentar como prova, prazo médio 6-18 meses, taxa de sucesso em casos com dados BCB documentados.]",
+  "estrategiaCompleta": "[PARÁGRAFO 1: Perfil de ${d.instituicao} em revisões de crédito pessoal — como responde, o que usa como argumento, qual canal é mais receptivo.\\n\\nPARÁGRAFO 2: Preparação antes do contato — quais documentos reunir, como organizar, quando ligar.\\n\\nPARÁGRAFO 3: Abordagem inicial — canal exato, como se identificar, linguagem simples sem jargão jurídico para apresentar os dados BCB.\\n\\nPARÁGRAFO 4: Escalada progressiva — sequência SAC→ouvidoria→consumidor.gov.br→BCB, tempo de espera entre cada passo e como manter pressão.\\n\\nPARÁGRAFO 5: Argumento irrefutável — como apresentar série SGS ${d.taxaBCB.codigoSerie} (${pct(r.taxaMediaBCB,4)}% a.m.) vs taxa cobrada (${pct(r.taxaCobrada,4)}% a.m.) de forma que ${d.instituicao} não possa contestar.]",
+  "roteirNegociacao": "(1) [Abertura: como se identificar, o que pedir imediatamente, tom de voz recomendado — mais de 3 linhas de orientação específica]\\n\\n(2) [Apresentação com dados: como citar a taxa BCB de forma simples e impactante para o atendente — mais de 3 linhas]\\n\\n(3) [Proposta formal: o que pedir especificamente, como pedir protocolo — mais de 3 linhas]\\n\\n(4) [Objeção taxa contratual: argumento com CDC Súmula 297/STJ de forma acessível — mais de 3 linhas]\\n\\n(5) [Objeção não podem alterar: como pedir registro formal e ouvidoria — mais de 3 linhas]\\n\\n(6) [Escalada para supervisor: o que dizer exatamente, menção ao consumidor.gov.br — mais de 3 linhas]\\n\\n(7) [Encerramento: o que obter antes de desligar — protocolo, nome, prazo de retorno, próximos passos — mais de 3 linhas]",
   "canaisRecomendados": [
-    "${d.instituicao} — SAC / Retenção: 0800 704 8383 (Bradesco) ou canal no app — Solicitar: 'revisão de taxa de crédito pessoal com base em dados do Banco Central' — Pedir conexão imediata com setor de renegociação",
-    "${d.instituicao} — Ouvidoria: ouvidoria.bradesco.com.br ou 0800 727 9933 — prazo obrigatório de 10 dias úteis (Res. BCB 4.433/2015) — Apresentar: protocolo do SAC + taxa BCB ${pct(r.taxaMediaBCB,4)}% vs taxa cobrada ${pct(r.taxaCobrada,4)}% + diferença de ${brl(r.diferencaAbusiva)}",
-    "consumidor.gov.br: registrar reclamação contra Banco Bradesco em 'Crédito Pessoal > Taxas e Encargos' — Incluir na descrição: taxa BCB série ${d.taxaBCB.codigoSerie} = ${pct(r.taxaMediaBCB,4)}% a.m., taxa cobrada = ${pct(r.taxaCobrada,4)}% a.m., diferença = ${brl(r.diferencaAbusiva)} — Taxa de resolução do Bradesco nessa plataforma: superior a 80%",
-    "Banco Central — Registrato e Ouvidoria BCB (bcb.gov.br/cidadaniafinanceira): usar se banco não resolver nas vias anteriores — reportar descumprimento de norma regulatória — Citar: Res. BCB 4.197/2013 (CET) e Res. BCB 4.433/2015 (ouvidoria) — Prazo de resposta: até 30 dias"
+    "[${d.instituicao} SAC/Retenção: número de telefone, app ou site, o que pedir exatamente com as palavras certas]",
+    "[${d.instituicao} Ouvidoria: como acessar, prazo 10 dias úteis obrigatório Res. BCB 4.433/2015, o que apresentar — protocolo SAC + dados BCB]",
+    "[consumidor.gov.br: categoria exata onde registrar contra ${d.instituicao}, o que escrever na descrição para maximizar chances de resolução]",
+    "[Banco Central ouvidoria BCB: quando usar, o que reportar, prazo de resposta, como citar Res. BCB 4.197/2013 e 4.433/2015]"
   ],
-
   "acoes7Dias": [
-    "Reunir documentação completa: contrato original assinado (físico ou digital), extratos bancários dos últimos 3 meses mostrando os débitos, todos os comprovantes de pagamento disponíveis, e o documento do CET se foi fornecido na contratação",
-    "Primeiro contato formal com ${d.instituicao}: ligar para o SAC (0800 704 8383), pedir setor de renegociação, apresentar os dados BCB (taxa ${pct(r.taxaMediaBCB,4)}% vs cobrada ${pct(r.taxaCobrada,4)}%), solicitar revisão formal e anotar número de protocolo e nome do atendente",
-    "Registrar no consumidor.gov.br: acessar consumidor.gov.br, buscar 'Banco Bradesco', categoria 'Crédito Pessoal > Taxas', descrever a diferença de ${brl(r.diferencaAbusiva)} com base na série SGS ${d.taxaBCB.codigoSerie} do BCB — isso cria pressão institucional imediata"
+    "[Ação 1 detalhada: reunir quais documentos específicos, como organizá-los]",
+    "[Ação 2 detalhada: primeiro contato formal com ${d.instituicao}, canal exato, o que dizer, como registrar protocolo]",
+    "[Ação 3 detalhada: registrar no consumidor.gov.br, passo a passo simplificado, o que incluir na descrição]"
   ],
-
   "acoes30Dias": [
-    "Se sem retorno satisfatório em 10 dias: acionar ouvidoria do ${d.instituicao} (ouvidoria.bradesco.com.br ou 0800 727 9933), mencionar o protocolo do SAC e que o prazo regulatório de 10 dias úteis será monitorado — descumprimento é reportável ao BCB",
-    "Organizar dossiê probatório: criar pasta com prints e PDFs de todas as comunicações, anotar data, hora, canal, nome do atendente e resultado de cada contato — esse dossiê será fundamental se o caso for para o JEC",
-    "Consultar Procon estadual: agendar atendimento presencial ou online em sp.procon.sp.gov.br (SP) ou equivalente estadual — levar todos os documentos e protocolos — a mediação é gratuita e o Procon tem poder de multar o banco"
+    "[Ação 1 detalhada: acionar ouvidoria de ${d.instituicao} se sem retorno — como fazer, o que mencionar]",
+    "[Ação 2 detalhada: organizar dossiê — quais comunicações salvar, como documentar cada contato]",
+    "[Ação 3 detalhada: consultar Procon estadual — como agendar, o que levar, o que esperar]"
   ],
-
   "acoes90Dias": [
-    "JEC — Juizado Especial Cível: protocolar ação sem advogado (causa até R$ 56.480 = 40 SM) — petição inicial: 'revisão de taxa de juros de crédito pessoal com adequação à média BCB e restituição da diferença de ${brl(r.diferencaAbusiva)}' — apresentar este laudo + extratos + protocolos de todas as tentativas anteriores como prova documental",
-    "Advogado especializado em direito bancário: buscar via OAB Encontre um Advogado (oab.org.br) ou indicação do Procon — solicitar orçamento com honorários de êxito (percentual sobre o ganho, sem custo inicial) — casos de revisão contratual bancária são frequentes e com boa perspectiva de resultado",
-    "Monitorar prazo prescricional: o prazo de 5 anos (CDC art. 27) conta da data de cada pagamento — com contrato de ${fmtMY(d.contrato.dataContrato)}, acompanhar atentamente para não perder o direito de ação judicial"
+    "[Ação 1 detalhada: JEC — como protocolar, o que apresentar como prova, valor da causa ${brl(r.diferencaAbusiva)}]",
+    "[Ação 2 detalhada: advogado especializado — onde encontrar, honorários de êxito, o que perguntar]",
+    "[Ação 3 detalhada: monitorar prescrição — prazo de 5 anos, calcular data crítica com base em ${fmtMY(d.contrato.dataContrato)}]"
   ],
-
   "alertasEspeciais": [
-    "ATENÇÃO — Armadilha do refinanciamento: ${d.instituicao} pode oferecer 'portabilidade' ou 'refinanciamento' como solução — isso parece vantajoso mas frequentemente aumenta o prazo total e o custo efetivo global. Sempre peça o CET completo por escrito antes de assinar qualquer nova proposta",
-    "PRAZO PRESCRICIONAL CRÍTICO: o direito de ação judicial para revisão prescreve em 5 anos a partir de cada pagamento — pagamentos realizados há mais de 5 anos já perderam a proteção judicial; aja logo para garantir que o maior período possível esteja coberto",
-    "CUIDADO COM DOCUMENTOS DE QUITAÇÃO: nunca assine qualquer documento contendo as expressões 'quitação de obrigações', 'renúncia de direitos' ou 'nada mais a reclamar' — essa linguagem invalida qualquer reclamação futura sobre o mesmo contrato",
-    "DOCUMENTAÇÃO URGENTE — Seu direito: solicite por escrito a ${d.instituicao} o extrato completo com amortização mês a mês (quanto foi para juros e quanto foi para capital em cada parcela) — você tem esse direito garantido pela Resolução BCB 3.517/2007 e o banco é obrigado a fornecer",
-    "SCORE DE CRÉDITO — Não se preocupe: registrar reclamações no consumidor.gov.br, Procon ou Banco Central NÃO afeta negativamente seu score de crédito — o processo de revisão de taxa é um direito legal e não resulta em qualquer negativação ou bloqueio de crédito futuro"
+    "ATENÇÃO — [alerta específico sobre armadilha de refinanciamento ou portabilidade em ${d.instituicao}]",
+    "PRAZO CRÍTICO — [prescrição 5 anos, impacto prático no caso de ${d.nome} com contrato de ${fmtMY(d.contrato.dataContrato)}]",
+    "CUIDADO — [alerta sobre documentos de quitação ou renúncia de direitos — linguagem específica a evitar]",
+    "DOCUMENTAÇÃO — [direito de solicitar extrato completo com amortização mês a mês, Res. BCB 3.517/2007]",
+    "SCORE — [esclarecimento de que reclamações em órgãos reguladores NÃO afetam o score de crédito]"
   ],
-
-  "prazosCriticos": "PRESCRIÇÃO JUDICIAL: 5 anos a partir de cada pagamento (CDC art. 27 e CC art. 206 §5º I) — contrato de ${fmtMY(d.contrato.dataContrato)}, monitorar ativamente. OUVIDORIA DO BANCO: resposta obrigatória em 10 dias úteis (Res. BCB 4.433/2015) — descumprimento reportável ao BCB. CONSUMIDOR.GOV.BR: empresa tem 10 dias corridos para responder. PROCON: mediação em 30-60 dias. JEC: sentença em média 6-18 meses. ORIENTAÇÃO: quanto antes agir, mais parcelas estarão dentro do prazo prescricional e maior o valor potencial de recuperação.",
-
-  "estimativaEconomia": "Com base na diferença comprovada de ${brl(r.diferencaAbusiva)} — equivalente a ${salEquiv} salários mínimos, resultado de ${pct(r.percentualExcesso,2)} de excesso sobre a taxa BCB de ${pct(r.taxaMediaBCB,4)} a.m. ao longo de ${r.periodoMeses} meses — o potencial de recuperação pode chegar a esse valor integral mediante negociação bem-sucedida com ${d.instituicao} ou por ação no JEC. Em cenário conservador, acordos extrajudiciais com grandes bancos resultam em recuperação de 40-70% do valor excedente como abatimento no saldo ou crédito em conta.",
-
+  "prazosCriticos": "[Detalhamento dos prazos: prescrição 5 anos (CDC art. 27) com data de referência ${fmtMY(d.contrato.dataContrato)}, ouvidoria 10 dias úteis (Res. BCB 4.433/2015), consumidor.gov.br 10 dias corridos, Procon 30-60 dias, JEC 6-18 meses, orientação de urgência]",
+  "estimativaEconomia": "[Estimativa de recuperação de ${brl(r.diferencaAbusiva)} = ${salEquiv} salários mínimos, potencial por via extrajudicial vs judicial, cenário conservador e otimista para ${d.nome} vs ${d.instituicao}]",
   "geradoPor": "NVIDIA NIM — meta/llama-3.3-70b-instruct"
 }
 
-REGRAS ABSOLUTAS — JSON VÁLIDO SOMENTE:
-1. Zero texto fora do JSON
-2. Use EXATAMENTE os números dos DADOS REAIS fornecidos acima
-3. Português brasileiro formal e acessível — sem legalês excessivo
-4. alertasEspeciais: EXATAMENTE 5 itens
-5. precedentesJudiciais: EXATAMENTE 3 itens
-6. direitosConsumidor: EXATAMENTE 5 itens
-7. acoes7Dias, acoes30Dias, acoes90Dias: EXATAMENTE 3 itens cada
-8. canaisRecomendados: EXATAMENTE 4 itens
-9. roteirNegociacao: EXATAMENTE 7 partes numeradas (1) a (7)`;
+REGRAS: JSON válido somente. alertasEspeciais=5. precedentesJudiciais=3. direitosConsumidor=5. acoes*=3 cada. canaisRecomendados=4. roteirNegociacao com (1) a (7). Escreva conteúdo REAL — não deixe colchetes no output.`;
 
   const resp = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
     method: "POST",
