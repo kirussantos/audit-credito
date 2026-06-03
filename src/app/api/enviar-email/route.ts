@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+
+export const maxDuration = 60; // segundos — necessário para chamada IA + geração PDF
 import { getDb } from "@/lib/firebase";
 import { gerarRelatorioPDF } from "@/lib/pdf-generator";
 import type { RespostaAnalise } from "@/types";

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { gerarRelatorioPDF } from "@/lib/pdf-generator";
+
+export const maxDuration = 60; // segundos — necessário para chamada IA (NVIDIA NIM)
 import { getDb } from "@/lib/firebase";
 import type { RespostaAnalise } from "@/types";
 
