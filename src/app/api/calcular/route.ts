@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTaxaMediaPeriodo } from "@/lib/bcb-api";
+
+export const maxDuration = 60; // permite pré-geração IA em background
 import { calcularValorCorrigido } from "@/lib/calculos";
 import { getDb } from "@/lib/firebase";
 import { schemaFormulario } from "@/lib/validations";
 import type { RespostaAnalise } from "@/types";
+
+// Pré-gera a análise IA em background após salvar no Firestore
+// Isso garante que, quando o cliente pagar, o PDF já tem a análise pronta
+async function preGerarAnaliseIA(id: string, resposta: RespostaAnalise): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+  try {
+    const { gerarAnaliseIA } = await import("@/lib/ai-analysis");
+    const analiseIA = await gerarAnaliseIA(resposta);
+    await db.collection("analises").doc(id).update({ analiseIA });
+    console.log(`[calcular] analiseIA pré-gerada para ${id}`);
+  } catch (err) {
+    console.error("[calcular] Falha ao pré-gerar analiseIA:", err);
+  }
+}
 
 // ─── Rate limiting em memória (por processo) ──────────────────────────────────
 // Para produção com múltiplos workers, substituir por Redis.
@@ -120,7 +137,13 @@ export async function POST(req: NextRequest) {
       ...resposta,
       ip,
       status: "pendente",
-    }).catch((err) => {
+    })
+    .then(() => {
+      // Fire-and-forget: pré-gerar análise IA em background
+      // Quando o cliente pagar, o Firestore já tem analiseIA → PDF gerado em segundos
+      preGerarAnaliseIA(id, resposta);
+    })
+    .catch((err) => {
       console.error("[firestore] Falha ao salvar análise:", err);
     });
   }

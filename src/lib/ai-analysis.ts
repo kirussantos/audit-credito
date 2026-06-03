@@ -1,7 +1,9 @@
 /**
  * ai-analysis.ts — v3
- * Modelo: nvidia/llama-3.1-nemotron-70b-instruct (melhor modelo de instrução da NVIDIA)
- * Gera laudo jurídico-financeiro ultra-detalhado para o relatório PDF de 8 páginas.
+ * Modelo: meta/llama-3.1-8b-instruct (rápido, confiável, dentro do timeout Vercel de 60s)
+ * Gera laudo jurídico-financeiro detalhado para o relatório PDF de 8 páginas.
+ *
+ * Tempo estimado: ~14s para 2048 tokens + ~6s PDF = ~20s total (bem abaixo dos 60s).
  */
 
 import type { RespostaAnalise } from "@/types";
@@ -10,9 +12,9 @@ import { ROTULO_TIPO_CREDITO } from "@/config/constants";
 // ─── Configuração ─────────────────────────────────────────────────────────────
 
 const NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1";
-const MODEL           = "nvidia/llama-3.1-nemotron-70b-instruct";
-const TIMEOUT_MS      = 55_000;   // 55s — dentro do limite Vercel
-const MAX_TOKENS      = 4_096;    // conteúdo completo e detalhado
+const MODEL           = "meta/llama-3.1-8b-instruct";
+const TIMEOUT_MS      = 45_000;   // 45s — margem segura dentro do limite Vercel de 60s
+const MAX_TOKENS      = 2_048;    // rápido e completo o suficiente para 8 páginas
 
 // ─── Interface completa ───────────────────────────────────────────────────────
 
@@ -168,7 +170,7 @@ Data de referência do contrato: ${dataRef}
 
   "estimativaEconomia": "Com base na diferença comprovada de ${difBRL} (excesso de ${excesso}% sobre a taxa BCB de ${taxaBCBm}% a.m.), o potencial de economia — seja por abatimento no saldo devedor, devolução de valores ou redução de parcelas futuras — pode chegar a ${difBRL}, dependendo da via escolhida e da receptividade de ${instituicao} à negociação.",
 
-  "geradoPor": "NVIDIA NIM — nvidia/llama-3.1-nemotron-70b-instruct"
+  "geradoPor": "NVIDIA NIM — meta/llama-3.1-8b-instruct"
 }
 
 REGRAS ABSOLUTAS — VIOLAÇÃO INVALIDA O LAUDO:

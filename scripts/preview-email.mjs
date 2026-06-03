@@ -1,6 +1,6 @@
 /**
  * preview-email.mjs — v3
- * Gera PDF de 8 páginas com análise IA (nvidia/llama-3.1-nemotron-70b-instruct)
+ * Gera PDF de 8 páginas com análise IA (meta/llama-3.3-70b-instruct)
  * e envia para elberagenciamkt@gmail.com como preview do produto final.
  *
  * Uso: node scripts/preview-email.mjs
@@ -228,7 +228,7 @@ RETORNE SOMENTE O JSON VÁLIDO:
   ],
   "prazosCriticos": "Prescrição revisional: 5 anos (CDC art. 27 / CC art. 206 §5º I) a partir de cada pagamento. Ouvidoria: 10 dias úteis obrigatórios. consumidor.gov.br: 10 dias corridos. JEC: sentença em 6-18 meses. Contrato de ${fmtMY(d.contrato.dataContrato)}: monitorar prazo com atenção.",
   "estimativaEconomia": "Com base na diferença comprovada de ${brl(r.diferencaAbusiva)} (excesso de ${pct(r.percentualExcesso,2)} sobre a taxa BCB), o potencial de recuperação — por abatimento no saldo ou devolução — pode chegar a ${brl(r.diferencaAbusiva)} mediante negociação com ${d.instituicao} ou ação no JEC.",
-  "geradoPor": "NVIDIA NIM — nvidia/llama-3.1-nemotron-70b-instruct"
+  "geradoPor": "NVIDIA NIM — meta/llama-3.3-70b-instruct"
 }
 
 REGRAS: JSON válido APENAS. Números reais: taxa ${pct(r.taxaCobrada,4)}, BCB ${pct(r.taxaMediaBCB,4)}, excesso ${pct(r.percentualExcesso,2)}, diff ${brl(r.diferencaAbusiva)}. alertasEspeciais=5 itens. precedentesJudiciais=3. direitosConsumidor=5. acoes*=3 cada. canaisRecomendados=4.`;
@@ -237,7 +237,7 @@ REGRAS: JSON válido APENAS. Números reais: taxa ${pct(r.taxaCobrada,4)}, BCB $
     method:  "POST",
     headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
     body:    JSON.stringify({
-      model:       "nvidia/llama-3.1-nemotron-70b-instruct",
+      model:       "meta/llama-3.3-70b-instruct",
       messages:    [{ role: "user", content: prompt }],
       temperature: 0.25,
       max_tokens:  4096,
@@ -656,7 +656,7 @@ function gerarPDF(ai) {
 async function main() {
   console.log("🚀 Gerando preview AuditCrédito v3 — PDF 8 páginas\n");
 
-  console.log("1️⃣  NVIDIA NIM — nvidia/llama-3.1-nemotron-70b-instruct...");
+  console.log("1️⃣  NVIDIA NIM — meta/llama-3.3-70b-instruct...");
   const ai = await gerarAnaliseIA();
   console.log(`   ✅ Análise gerada! Risco: ${ai.nivelRisco} — Probabilidade: ${ai.probabilidadeSucesso?.split(" ")[0]}`);
 
