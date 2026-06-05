@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/firebase";
+import { sendCAPIEvent, sha256 } from "@/lib/meta-capi";
 import type { Firestore } from "firebase-admin/firestore";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -178,6 +179,37 @@ export async function POST(req: NextRequest) {
       console.error("[webhook] Erro ao atualizar Firestore:", err);
       // Continua — não bloqueia o envio do email
     }
+  }
+
+  // ── Purchase via Meta Conversions API (server-side, fire-and-forget) ─────
+  try {
+    const host  = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
+    const proto = req.headers.get("x-forwarded-proto") ?? "https";
+    const sourceUrl = `${proto}://${host}/obrigado`;
+    const ip    = (req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "").split(",")[0].trim();
+    const ua    = req.headers.get("user-agent") ?? "";
+
+    await sendCAPIEvent({
+      event_name:       "Purchase",
+      event_id:         `wh-${analiseId || evento.email}-${Date.now()}`,
+      event_source_url: sourceUrl,
+      custom_data: {
+        value:        19.90,
+        currency:     "BRL",
+        content_name: "Relatorio Completo",
+        content_ids:  ["relatorio-completo"],
+        num_items:    1,
+      },
+      user_data: {
+        em:                sha256(evento.email),
+        client_ip_address: ip || undefined,
+        client_user_agent: ua || undefined,
+      },
+    });
+    console.log(`[webhook] CAPI Purchase enviado para Meta — ${evento.email}`);
+  } catch (capiErr) {
+    console.error("[webhook] Falha no CAPI Purchase:", capiErr);
+    // Não bloqueia o fluxo
   }
 
   // ── Disparar email ────────────────────────────────────────────────────────

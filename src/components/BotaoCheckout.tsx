@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { track } from "@/lib/track";
 
 interface Props {
   analiseId: string;
@@ -8,6 +9,7 @@ interface Props {
 
 export default function BotaoCheckout({ analiseId }: Props) {
   const [url, setUrl] = useState<string | null>(null);
+  const disparedRef = useRef(false);
 
   useEffect(() => {
     const base = process.env.NEXT_PUBLIC_CHECKOUT_URL;
@@ -18,6 +20,18 @@ export default function BotaoCheckout({ analiseId }: Props) {
     setUrl(u.toString());
   }, [analiseId]);
 
+  function handleCheckoutClick() {
+    if (disparedRef.current) return;
+    disparedRef.current = true;
+    track("InitiateCheckout", {
+      value: 19.90,
+      currency: "BRL",
+      content_name: "Relatorio Completo",
+      content_ids: ["relatorio-completo"],
+      num_items: 1,
+    });
+  }
+
   if (!url) return null;
 
   return (
@@ -25,6 +39,7 @@ export default function BotaoCheckout({ analiseId }: Props) {
       {/* Botão principal */}
       <a
         href={url}
+        onClick={handleCheckoutClick}
         className="block w-full text-center rounded-xl text-white font-bold text-base py-4 px-6 transition-opacity hover:opacity-90 active:opacity-80 shadow-md"
         style={{ backgroundColor: "#1B4F72" }}
       >
