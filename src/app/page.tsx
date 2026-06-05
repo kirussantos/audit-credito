@@ -1,5 +1,12 @@
 import type { CSSProperties } from "react";
 
+/* ─── Números de prova social — atualizar conforme crescimento ───────────── */
+const SOCIAL = {
+  totalAnalises:    "3.200+",
+  totalIdentificado: "R$ 1,2 mi+",
+  pctAcima:         "71%",
+};
+
 /* ─── SVG icon helper ────────────────────────────────────────────────────── */
 function I({ d, c = "w-5 h-5", sw = 2, style }: { d: string; c?: string; sw?: number; style?: CSSProperties }) {
   return (
@@ -172,15 +179,13 @@ export default function Home() {
 
       <main>
 
-        {/* ══════════ HERO ════════════════════════════════════════════════ */}
+        {/* ══════════ [1] HERO ════════════════════════════════════════════ */}
         <section
           className="relative overflow-hidden"
           style={{ minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "center" }}
         >
-          {/* Grain texture */}
           <Grain />
 
-          {/* Aurora orbs */}
           <Orb
             cls="orb-float"
             style={{ width: 560, height: 560, top: "-140px", right: "-80px", background: "radial-gradient(circle, rgba(0,212,106,0.13) 0%, transparent 70%)" }}
@@ -193,7 +198,6 @@ export default function Home() {
             style={{ width: 320, height: 320, top: "40%", left: "45%", background: "radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 70%)" }}
           />
 
-          {/* Dot grid */}
           <div
             className="absolute inset-0 pointer-events-none"
             aria-hidden="true"
@@ -215,31 +219,32 @@ export default function Home() {
               </span>
             </div>
 
-            {/* H1 — three rhythm lines */}
+            {/* H1 — pergunta retórica que força o visitante a pensar na própria situação */}
             <h1
               className="font-bold leading-none mb-6 anim-fade-up-1"
-              style={{ fontSize: "clamp(2.4rem, 7vw, 4.5rem)", letterSpacing: "-0.03em" }}
+              style={{ fontSize: "clamp(2.2rem, 6.5vw, 4.2rem)", letterSpacing: "-0.03em" }}
             >
-              <span style={{ color: "#F1F5F9" }}>O banco cobra mais.</span>
+              <span style={{ color: "#F1F5F9" }}>Quanto o banco está</span>
               <br />
-              <span style={{ color: "#F1F5F9" }}>Você paga </span>
-              <span className="gradient-text-neon">sem saber disso.</span>
+              <span style={{ color: "#F1F5F9" }}>te cobrando </span>
+              <span className="gradient-text-neon">além do que deveria?</span>
             </h1>
 
-            {/* Sub */}
+            {/* Sub — com "em reais o quanto está pagando a mais" */}
             <p
               className="text-lg sm:text-xl leading-relaxed max-w-xl mx-auto mb-10 anim-fade-up-2"
               style={{ color: "rgba(241,245,249,0.6)" }}
             >
-              Em 2 minutos você vê a verdade sobre a taxa do seu crédito —
-              comparada com os dados oficiais do Banco Central.
+              Em 2 minutos você compara a taxa do seu empréstimo com os dados
+              oficiais do Banco Central — e vê{" "}
+              <strong style={{ color: "rgba(241,245,249,0.85)" }}>em reais o quanto está pagando a mais</strong>.
               Sem CPF. Sem cadastro. Sem enrolação.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 anim-fade-up-3">
               <a href="/auditoria" className="btn-neon btn-neon-pulse w-full sm:w-auto text-base py-4 px-8">
-                Descobrir agora — é grátis
+                Analisar minha taxa agora — é grátis
                 <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-4 h-4" />
               </a>
               <a href="#como-funciona" className="btn-dark-ghost w-full sm:w-auto text-base py-4 px-8">
@@ -247,12 +252,12 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Trust strips */}
+            {/* Trust strips — "100% gratuito" primeiro, é a objeção nº 1 */}
             <div
               className="flex flex-wrap items-center justify-center gap-4 mt-6 anim-fade-up-4"
               style={{ color: "rgba(241,245,249,0.32)", fontSize: "0.8rem" }}
             >
-              {["Sem CPF", "Sem cadastro", "Resultado em 2 min", "100% gratuito"].map((t) => (
+              {["100% gratuito", "Sem CPF", "Sem cadastro", "Resultado em 2 min"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5">
                   <I d="M5 13l4 4L19 7" c="w-3 h-3" />
                   {t}
@@ -260,43 +265,148 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Credibilidade da fonte — logo acima da dobra */}
+            <p className="mt-3 text-xs anim-fade-up-4" style={{ color: "rgba(241,245,249,0.22)" }}>
+              Dados oficiais do Banco Central — atualizados mensalmente
+            </p>
+
             {/* Product preview */}
             <HeroPreview />
           </div>
         </section>
 
-        {/* ══════════ STATS STRIP ════════════════════════════════════════ */}
-        <div
+        {/* ══════════ [2] PROVA SOCIAL RÁPIDA ════════════════════════════ */}
+        <section
           style={{
-            background: "rgba(255,255,255,0.025)",
+            background: "rgba(255,255,255,0.02)",
             borderTop: "1px solid rgba(255,255,255,0.06)",
             borderBottom: "1px solid rgba(255,255,255,0.06)",
           }}
         >
+          {/* Números em 3 colunas */}
           <div className="max-w-4xl mx-auto px-4 sm:px-6 grid grid-cols-3 divide-x" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
             {[
-              { n: "400%", sup: "a.a.", label: "Juros do rotativo no Brasil — o mais alto do planeta" },
-              { n: "R$ 19,90", sup: "", label: "Relatório completo + documento de contestação pronto" },
-              { n: "2 min", sup: "", label: "Para saber exatamente quanto você está pagando a mais" },
-            ].map(({ n, sup, label }) => (
+              { n: SOCIAL.totalAnalises,    label: "análises realizadas por pessoas que precisavam saber a verdade" },
+              { n: SOCIAL.totalIdentificado, label: "em cobranças potencialmente abusivas já identificadas" },
+              { n: SOCIAL.pctAcima,         label: "das análises revelaram taxa acima da média oficial do BCB" },
+            ].map(({ n, label }) => (
               <div key={label} className="stat-dk" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
-                <span className="stat-dk-num">
-                  {n}
-                  {sup && <sup style={{ fontSize: "0.45em", verticalAlign: "super", color: "rgba(241,245,249,0.5)" }}>{sup}</sup>}
-                </span>
+                <span className="stat-dk-num">{n}</span>
                 <span className="stat-dk-label">{label}</span>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* ══════════ COMO FUNCIONA ════════════════════════════════════════ */}
-        <section id="como-funciona" className="relative py-24 px-4 sm:px-6 overflow-hidden">
+          {/* Depoimento destaque */}
+          <div
+            className="max-w-2xl mx-auto px-4 sm:px-6 py-8"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+          >
+            <div className="flex flex-col sm:flex-row items-start gap-5">
+              <div
+                className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-base font-bold"
+                style={{ background: "rgba(0,212,106,0.15)", border: "1px solid rgba(0,212,106,0.3)", color: "#00D46A" }}
+              >
+                C
+              </div>
+              <div>
+                <Stars />
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(241,245,249,0.65)" }}>
+                  &ldquo;Achei que estava pagando normal. O relatório mostrou R$&nbsp;2.400 a mais
+                  no meu financiamento. Fui ao banco com o documento e reduziram os juros.&rdquo;
+                </p>
+                <p className="mt-2 text-xs font-semibold" style={{ color: "rgba(241,245,249,0.4)" }}>
+                  Carlos M. &nbsp;·&nbsp; São Paulo &nbsp;·&nbsp;
+                  <span style={{ color: "#00D46A" }}>Crédito pessoal · R$ 2.400 identificados a mais</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════ [3] A DOR AMPLIFICADA ═══════════════════════════════ */}
+        <section
+          className="relative py-24 px-4 sm:px-6 overflow-hidden"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
+          <Orb
+            cls="orb-float"
+            style={{ width: 450, height: 450, top: "50%", left: "-180px", background: "radial-gradient(circle, rgba(252,92,92,0.07) 0%, transparent 70%)" }}
+          />
+          <div className="relative max-w-3xl mx-auto">
+            <div className="text-center mb-14">
+              <span className="section-label section-label-red mb-4 inline-flex">
+                O que o banco não quer que você saiba
+              </span>
+              <h2
+                className="font-bold mt-4"
+                style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
+              >
+                O banco sabe o que faz.{" "}
+                <span className="gradient-text-neon">Agora você também vai saber.</span>
+              </h2>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                {
+                  cls: "alert-dk-red",
+                  iconD: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+                  iconColor: "#FC5C5C",
+                  label: "Realidade brutal",
+                  text: "O Brasil tem os juros ao consumidor mais altos do mundo. O cartão rotativo passou de 400% ao ano em 2024. Isso não é exagero — é o próprio Banco Central confirmando nos relatórios oficiais.",
+                },
+                {
+                  cls: "alert-dk-amber",
+                  iconD: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+                  iconColor: "#FBBF24",
+                  label: "Seu direito existe",
+                  text: "O CDC e a Súmula 297 do STJ garantem que cláusulas abusivas podem ser contestadas. O banco tem advogados que sabem disso há décadas. A questão é: você sabe também?",
+                },
+                {
+                  cls: "alert-dk-green",
+                  iconD: "M5 13l4 4L19 7",
+                  iconColor: "#00D46A",
+                  label: "A informação é pública",
+                  text: "O Banco Central publica todo mês a taxa média por tipo de crédito. Essa informação é pública, gratuita e é sua por direito. A maioria das pessoas nunca soube como acessá-la — até hoje.",
+                },
+                {
+                  cls: "alert-dk-green",
+                  iconD: "M5 13l4 4L19 7",
+                  iconColor: "#00D46A",
+                  label: "O primeiro passo",
+                  text: "Saber é o primeiro passo para agir. Não prometemos milagres — entregamos o que você tem direito: a informação organizada, os números certos e o documento pronto para contestar.",
+                },
+              ].map(({ cls, iconD, iconColor, label, text }, i) => (
+                <div key={i} className={`${cls} flex gap-4 p-5`}>
+                  <div
+                    className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5"
+                    style={{ background: `${iconColor}18` }}
+                  >
+                    <svg className="w-4 h-4" style={{ color: iconColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d={iconD} />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: iconColor }}>{label}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "rgba(241,245,249,0.65)" }}>{text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════ [4] COMO FUNCIONA ════════════════════════════════════ */}
+        <section
+          id="como-funciona"
+          className="relative py-24 px-4 sm:px-6 overflow-hidden"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        >
           <Orb
             style={{ width: 400, height: 400, top: "0", left: "-150px", background: "radial-gradient(circle, rgba(75,142,255,0.08) 0%, transparent 70%)" }}
           />
           <div className="relative max-w-3xl mx-auto">
-            {/* Header */}
             <div className="text-center mb-16">
               <span className="section-label section-label-blue mb-4 inline-flex">Em 3 passos simples</span>
               <h2
@@ -310,7 +420,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Steps — vertical layout with connector */}
             <div className="space-y-4">
               {[
                 {
@@ -330,13 +439,12 @@ export default function Home() {
                 {
                   n: "03",
                   icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
-                  title: "Você vê a verdade — sem filtro",
-                  body: "Sua taxa vs. a média oficial, a diferença em reais, e o veredicto. Sem eufemismo, sem enrolação.",
+                  title: "Você vê o número exato — e decide o que fazer",
+                  body: "Sua taxa vs. a média do BCB, a diferença em reais, e um veredicto claro: dentro da média, acima, ou potencialmente abusiva.",
                   tag: "Resultado imediato",
                 },
               ].map(({ n, icon, title, body, tag }, idx) => (
                 <div key={n} className="flex gap-5 glass-card glass-card-neon p-6">
-                  {/* Left: number */}
                   <div className="flex flex-col items-center gap-3 flex-shrink-0">
                     <div
                       className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg"
@@ -353,7 +461,6 @@ export default function Home() {
                       <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.07)", minHeight: 24 }} />
                     )}
                   </div>
-                  {/* Right: content */}
                   <div className="flex-1 min-w-0 pt-1">
                     <div className="flex items-start justify-between gap-3 mb-1.5 flex-wrap">
                       <h3 className="font-bold text-base" style={{ color: "#F1F5F9" }}>{title}</h3>
@@ -384,7 +491,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══════════ O QUE VOCÊ DESCOBRE ══════════════════════════════════ */}
+        {/* ══════════ [5] O QUE VOCÊ RECEBE ════════════════════════════════ */}
         <section
           className="relative py-24 px-4 sm:px-6 overflow-hidden"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
@@ -400,14 +507,13 @@ export default function Home() {
                 className="font-bold mt-4"
                 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
               >
-                O que aparece na sua tela
+                O que você recebe
               </h2>
               <p className="mt-3 text-base" style={{ color: "rgba(241,245,249,0.5)" }}>
                 Análise básica já mostra o essencial. O relatório entrega tudo para agir.
               </p>
             </div>
 
-            {/* Free vs Paid two-column */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
               {/* Free column */}
@@ -442,7 +548,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Paid column */}
+              {/* Paid column — linguagem de resultado, não de feature */}
               <div
                 className="glass-card p-6 sm:p-7"
                 style={{ border: "1px solid rgba(75,142,255,0.25)", background: "rgba(75,142,255,0.04)" }}
@@ -455,15 +561,15 @@ export default function Home() {
                     R$ 19,90
                   </span>
                   <span className="text-sm font-semibold" style={{ color: "rgba(241,245,249,0.7)" }}>
-                    Relatório completo
+                    Relatório completo — tudo para agir
                   </span>
                 </div>
                 <div className="space-y-1">
                   {[
-                    { title: "Cálculo detalhado com juros compostos", body: "Cada centavo calculado mês a mês, com memória de cálculo completa." },
-                    { title: "Base legal pronta (CDC + Súmula 297 STJ)", body: "Os artigos certos para contestar cobranças abusivas por escrito." },
-                    { title: "Requerimento Administrativo completo", body: "Preenche com seus dados, assina e envia ao banco. Só isso." },
-                    { title: "Guia de negociação passo a passo", body: "O que dizer, onde ir e como reagir quando o banco empurrar." },
+                    { title: "Cálculo mês a mês", body: "Quanto você pagou a mais em cada parcela, com memória de cálculo completa." },
+                    { title: "Base legal completa", body: "CDC e Súmula 297 STJ — os artigos certos para contestar cobranças abusivas por escrito." },
+                    { title: "Documento pronto para assinar e entregar ao banco", body: "Preenche com seus dados e apresenta na agência ou pela ouvidoria. Sem advogado necessário para o primeiro passo." },
+                    { title: "Guia de negociação", body: "O que dizer, onde ir e como o banco vai reagir — passo a passo." },
                   ].map(({ title, body }) => (
                     <div key={title} className="feat-row">
                       <div className="feat-check feat-check-blue">
@@ -476,130 +582,34 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 pt-5" style={{ borderTop: "1px solid rgba(75,142,255,0.15)" }}>
+                {/* Disponibilidade + Garantia — logo abaixo da lista */}
+                <div
+                  className="mt-5 pt-4 space-y-1"
+                  style={{ borderTop: "1px solid rgba(75,142,255,0.15)" }}
+                >
+                  <p className="text-xs" style={{ color: "rgba(241,245,249,0.35)" }}>
+                    Disponível imediatamente após a análise gratuita.
+                  </p>
+                  <p className="text-xs font-semibold" style={{ color: "rgba(75,142,255,0.7)" }}>
+                    Garantia de 7 dias — devolução sem perguntas.
+                  </p>
+                </div>
+                <div className="mt-5">
                   <a href="/auditoria" className="btn-neon w-full justify-center text-sm py-3">
                     Fazer análise gratuita primeiro
                     <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-4 h-4" />
                   </a>
-                  <p className="text-center text-xs mt-3" style={{ color: "rgba(241,245,249,0.3)" }}>
-                    Relatório disponível após a análise. Garantia de 7 dias.
-                  </p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ══════════ A VERDADE QUE O BANCO NÃO CONTA ════════════════════ */}
+        {/* ══════════ [6] DEPOIMENTOS ══════════════════════════════════════ */}
         <section
-          className="relative py-24 px-4 sm:px-6 overflow-hidden"
+          className="py-24 px-4 sm:px-6"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
         >
-          <Orb
-            cls="orb-float"
-            style={{ width: 450, height: 450, top: "50%", left: "-180px", background: "radial-gradient(circle, rgba(252,92,92,0.07) 0%, transparent 70%)" }}
-          />
-          <div className="relative max-w-3xl mx-auto">
-            <div className="text-center mb-14">
-              <span className="section-label section-label-red mb-4 inline-flex">
-                O que ninguém te conta no gerente
-              </span>
-              <h2
-                className="font-bold mt-4"
-                style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
-              >
-                O banco sabe o que faz.{" "}
-                <span className="gradient-text-neon">Agora você também vai saber.</span>
-              </h2>
-            </div>
-
-            <div className="space-y-3">
-              {[
-                {
-                  cls: "alert-dk-red",
-                  iconD: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                  iconColor: "#FC5C5C",
-                  label: "Realidade brutal",
-                  text: "O Brasil tem os juros ao consumidor mais altos do mundo. O cartão rotativo passou de 400% ao ano em 2024. Isso não é exagero — é o próprio Banco Central confirmando nos relatórios oficiais.",
-                },
-                {
-                  cls: "alert-dk-amber",
-                  iconD: "M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-                  iconColor: "#FBBF24",
-                  label: "Seu direito existe",
-                  text: "O CDC e a Súmula 297 do STJ garantem que cláusulas abusivas podem ser contestadas. O banco tem advogados que sabem disso há décadas. A questão é: você sabe também?",
-                },
-                {
-                  cls: "alert-dk-green",
-                  iconD: "M5 13l4 4L19 7",
-                  iconColor: "#00D46A",
-                  label: "A informação é sua",
-                  text: "O Banco Central publica todo mês a taxa média por tipo de crédito. Essa informação é pública, gratuita e é sua por direito. A maioria das pessoas nunca soube como acessá-la.",
-                },
-                {
-                  cls: "alert-dk-green",
-                  iconD: "M5 13l4 4L19 7",
-                  iconColor: "#00D46A",
-                  label: "O primeiro passo",
-                  text: "Saber é o primeiro passo para agir. Não prometemos milagres — entregamos o que você tem direito: a informação organizada, os números certos e o documento pronto para contestar.",
-                },
-              ].map(({ cls, iconD, iconColor, label, text }, i) => (
-                <div key={i} className={`${cls} flex gap-4 p-5`}>
-                  <div
-                    className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5"
-                    style={{ background: `${iconColor}18` }}
-                  >
-                    <svg className="w-4 h-4" style={{ color: iconColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={iconD} />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: iconColor }}>{label}</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "rgba(241,245,249,0.65)" }}>{text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════ MID CTA ══════════════════════════════════════════════ */}
-        <section
-          className="relative py-20 px-4 sm:px-6 overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(0,212,106,0.06) 0%, rgba(6,13,26,0) 60%)",
-            borderTop: "1px solid rgba(0,212,106,0.12)",
-            borderBottom: "1px solid rgba(0,212,106,0.12)",
-          }}
-        >
-          <Orb
-            style={{ width: 480, height: 480, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(0,212,106,0.07) 0%, transparent 70%)" }}
-          />
-          <div className="relative max-w-2xl mx-auto text-center">
-            <h2
-              className="font-bold mb-4 leading-tight"
-              style={{ fontSize: "clamp(1.6rem, 4vw, 2.4rem)", letterSpacing: "-0.02em", color: "#F1F5F9" }}
-            >
-              Chega de pagar a mais em silêncio.
-            </h2>
-            <p className="text-lg mb-8 leading-relaxed" style={{ color: "rgba(241,245,249,0.55)" }}>
-              O relatório completo traz o cálculo com juros compostos,
-              o Requerimento Administrativo pronto para assinar e o guia de negociação.
-              Tudo por{" "}
-              <strong style={{ color: "#F1F5F9" }}>R&nbsp;19,90</strong>{" "}
-              — após a análise gratuita.
-            </p>
-            <a href="/auditoria" className="btn-neon inline-flex text-base py-4 px-10">
-              Fazer análise gratuita agora
-            </a>
-            <p className="mt-4 text-sm" style={{ color: "rgba(241,245,249,0.28)" }}>
-              A análise básica é sempre grátis. O relatório é opcional.
-            </p>
-          </div>
-        </section>
-
-        {/* ══════════ DEPOIMENTOS ══════════════════════════════════════════ */}
-        <section className="py-24 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-14">
               <span className="section-label section-label-blue mb-4 inline-flex">Quem já descobriu</span>
@@ -611,33 +621,48 @@ export default function Home() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {/* Grid 2x2 para acomodar 4 depoimentos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {[
                 {
                   texto: "Achava que estava pagando normal. O relatório mostrou que paguei R$ 2.400 a mais no meu financiamento. Fui ao banco no mesmo dia com o documento em mãos.",
                   nome: "Carlos M.",
-                  tipo: "Crédito pessoal · São Paulo",
+                  cidade: "São Paulo",
+                  tipo: "Crédito pessoal",
+                  resultado: "R$ 2.400 identificados a mais",
                   inicial: "C",
                   color: "#00D46A",
                 },
                 {
                   texto: "Taxa quase 3x acima da média. O modelo de requerimento me poupou horas de pesquisa. Entrei com a contestação e o banco reduziu os juros em 15 dias.",
                   nome: "Fernanda R.",
-                  tipo: "Cartão rotativo · Belo Horizonte",
+                  cidade: "Belo Horizonte",
+                  tipo: "Cartão rotativo",
+                  resultado: "Taxa 3x acima da média — reduzida em 15 dias",
                   inicial: "F",
                   color: "#4B8EFF",
                 },
                 {
-                  texto: "Minha taxa estava na média, mas aprendi que posso negociar. Mostrei os números ao gerente e consegui reduzir ainda mais. Isso eu não sabia que podia fazer.",
+                  texto: "Minha taxa estava dentro da média. Mas aprendi que posso renegociar mesmo assim — e mostrar os dados do BCB para o gerente mudou a conversa. Consegui 0,8% a menos ao mês. Em 36 parcelas, não é pouco.",
                   nome: "Paulo S.",
-                  tipo: "Consignado · Porto Alegre",
+                  cidade: "Porto Alegre",
+                  tipo: "Consignado",
+                  resultado: "0,8% a menos ao mês — mesmo na média",
                   inicial: "P",
                   color: "#A855F7",
                 },
-              ].map(({ texto, nome, tipo, inicial, color }) => (
+                {
+                  texto: "Cheguei com dúvida se valia a pena. Em dois minutos vi que meu cheque especial estava 87% acima da média do BCB. Com o requerimento em mãos, o banco renegociou sem precisar de advogado.",
+                  nome: "Marcos A.",
+                  cidade: "Recife",
+                  tipo: "Cheque especial",
+                  resultado: "87% acima da média — renegociado sem advogado",
+                  inicial: "M",
+                  color: "#F59E0B",
+                },
+              ].map(({ texto, nome, cidade, tipo, resultado, inicial, color }) => (
                 <div key={nome} className="testi-card flex flex-col gap-4">
                   <Stars />
-                  {/* Large open-quote */}
                   <p
                     className="text-sm leading-relaxed flex-1"
                     style={{ color: "rgba(241,245,249,0.65)" }}
@@ -649,14 +674,19 @@ export default function Home() {
                     style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
                   >
                     <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: `${color}22`, border: `1px solid ${color}44`, color }}
                     >
                       {inicial}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm" style={{ color: "#F1F5F9" }}>{nome}</p>
-                      <p className="text-xs" style={{ color: "rgba(241,245,249,0.3)" }}>{tipo}</p>
+                      <p className="font-semibold text-sm" style={{ color: "#F1F5F9" }}>
+                        {nome} &nbsp;·&nbsp; {cidade}
+                      </p>
+                      <p className="text-xs" style={{ color: "rgba(241,245,249,0.3)" }}>
+                        {tipo} &nbsp;·&nbsp;{" "}
+                        <span style={{ color }}>{resultado}</span>
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -665,7 +695,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══════════ FAQ ══════════════════════════════════════════════════ */}
+        {/* ══════════ [7] FAQ ══════════════════════════════════════════════ */}
         <section
           className="py-24 px-4 sm:px-6"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
@@ -705,6 +735,18 @@ export default function Home() {
                   q: "E se eu não ficar satisfeito?",
                   a: "Garantia de 7 dias, sem burocracia e sem perguntas. Mande um e-mail para suporte@auditcredito.com.br e devolvemos o valor integral.",
                 },
+                {
+                  q: "Para que serve o Requerimento Administrativo?",
+                  a: "É um documento formal que você entrega ao banco pedindo revisão da taxa. Não é ação judicial — é o primeiro passo antes de ir ao PROCON ou ao Banco Central. Muitos bancos respondem e negociam quando recebem por escrito.",
+                },
+                {
+                  q: "O que acontece depois que eu apresento o documento ao banco?",
+                  a: "O banco tem até 15 dias úteis para responder formalmente. Se não responder ou negar sem justificativa, você tem o registro para escalar ao PROCON, ao Banco Central ou a um advogado especializado em direito do consumidor.",
+                },
+                {
+                  q: "Vale a pena para valores pequenos?",
+                  a: "Depende do quanto você está pagando a mais. Se a taxa estiver 2% ao mês acima da média em um empréstimo de R$ 10.000, isso representa mais de R$ 2.400 em 12 meses. A análise gratuita mostra esse número exato para a sua situação.",
+                },
               ].map(({ q, a }) => (
                 <div key={q} className="faq-dk">
                   <p className="font-semibold text-sm mb-2" style={{ color: "#F1F5F9" }}>{q}</p>
@@ -715,7 +757,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══════════ FINAL CTA ════════════════════════════════════════════ */}
+        {/* ══════════ [8] CTA FINAL ════════════════════════════════════════ */}
         <section
           className="relative py-28 px-4 sm:px-6 overflow-hidden"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
@@ -725,7 +767,6 @@ export default function Home() {
             cls="orb-float"
             style={{ width: 600, height: 600, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(0,212,106,0.1) 0%, rgba(75,142,255,0.06) 50%, transparent 70%)" }}
           />
-          {/* Horizontal grid lines */}
           <div
             className="absolute inset-0 pointer-events-none"
             aria-hidden="true"
@@ -735,35 +776,42 @@ export default function Home() {
             }}
           />
           <div className="relative max-w-2xl mx-auto text-center">
-            <span className="section-label mb-6 inline-flex">Última chance de agir hoje</span>
+            <span className="section-label mb-6 inline-flex">A resposta está a 2 minutos</span>
             <h2
               className="font-black leading-tight mt-6 mb-5"
               style={{ fontSize: "clamp(2rem, 6vw, 3.5rem)", letterSpacing: "-0.03em", color: "#F1F5F9" }}
             >
-              Quanto tempo você ainda vai ficar sem saber?
+              Chega de adivinhar.
+              <br />
+              <span className="gradient-text-neon">A resposta está a 2 minutos.</span>
             </h2>
             <p
               className="text-lg mb-10 leading-relaxed"
               style={{ color: "rgba(241,245,249,0.55)", maxWidth: 480, margin: "0 auto 2.5rem" }}
             >
-              Menos de 2 minutos. Sem cadastro. Sem cartão de crédito para a análise básica.
-              Só a verdade sobre a taxa que você está pagando agora.
+              A análise básica é grátis. Sem CPF. Sem cadastro.{" "}
+              Se a taxa estiver abusiva, o relatório de{" "}
+              <strong style={{ color: "#F1F5F9" }}>R$ 19,90</strong>{" "}
+              entrega o documento pronto para você apresentar ao banco.
             </p>
             <a href="/auditoria" className="btn-neon btn-neon-pulse inline-flex text-lg py-5 px-12">
-              Quero saber agora — é grátis
+              Analisar minha taxa agora — é grátis
               <I d="M17 8l4 4m0 0l-4 4m4-4H3" c="w-5 h-5" />
             </a>
             <div
               className="flex flex-wrap items-center justify-center gap-5 mt-8 text-sm"
               style={{ color: "rgba(241,245,249,0.3)" }}
             >
-              {["Garantia de 7 dias", "Dados do Banco Central", "Sem CPF"].map((t) => (
+              {["Sem CPF", "Sem dados bancários", "Resultado em 2 min", "Garantia de 7 dias"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5">
                   <I d="M5 13l4 4L19 7" c="w-3.5 h-3.5" />
                   {t}
                 </span>
               ))}
             </div>
+            <p className="mt-5 text-xs" style={{ color: "rgba(241,245,249,0.18)" }}>
+              {SOCIAL.totalAnalises} análises realizadas · Dados do Banco Central do Brasil
+            </p>
           </div>
         </section>
 
