@@ -21,12 +21,24 @@ export function gtagEvent(eventName: string, params?: GtagParams) {
   window.gtag("event", eventName, params);
 }
 
-/** Envia page_view manual (para rotas SPA) */
-export function gtagPageView(url: string, title?: string) {
+/** Envia page_view manual (para rotas SPA).
+ *  @param sessionUtms  Query string com UTM params capturados na entrada
+ *                      (preserva atribuição de fonte em toda a sessão SPA)
+ */
+export function gtagPageView(url: string, title?: string, sessionUtms?: string) {
   if (typeof window === "undefined" || typeof window.gtag !== "function") return;
+
+  /* Mescla UTMs da sessão de entrada nos parâmetros do page_view */
+  const utmParams: GtagParams = {};
+  if (sessionUtms) {
+    const parsed = new URLSearchParams(sessionUtms);
+    parsed.forEach((v, k) => { utmParams[k] = v; });
+  }
+
   window.gtag("config", GA4_ID, {
     page_path: url,
     ...(title ? { page_title: title } : {}),
+    ...utmParams,
   });
 }
 

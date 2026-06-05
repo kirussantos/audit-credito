@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { track } from "@/lib/track";
+import { ga4BeginCheckout } from "@/lib/ga4";
 
 interface Props {
   analiseId: string;
@@ -30,6 +31,7 @@ export default function BotaoCheckout({ analiseId }: Props) {
       content_ids: ["relatorio-completo"],
       num_items: 1,
     });
+    ga4BeginCheckout();
   }
 
   if (!url) return null;

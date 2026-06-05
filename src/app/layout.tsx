@@ -7,6 +7,7 @@ import {
   MetaPixelTracker,
 } from "@/components/MetaPixel";
 import GA4Tracker from "@/components/GA4Tracker";
+import { GA4_ID } from "@/lib/ga4";
 import "./globals.css";
 
 const ibm = IBM_Plex_Sans({
@@ -55,6 +56,23 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
+
+        {/* ── GA4 direto — garante window.gtag disponível para eventos SPA ── */}
+        {/* send_page_view:false evita duplicar com o GTM — só eventos customizados */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA4_ID}', {
+            send_page_view: false,
+            cookie_flags: 'SameSite=None;Secure'
+          });
+        `}</Script>
+
         {/* PageView a cada navegação SPA */}
         <GA4Tracker />
 
