@@ -432,7 +432,7 @@ function fallbackAnalise(dados: RespostaAnalise): AnaliseIA {
     acoes90Dias: [
       `JEC — Juizado Especial Cível: protocolar ação com valor de causa de até ${difBRL} — apresentar este laudo + extratos + todos os protocolos de tentativas anteriores como prova documental`,
       `Buscar advogado especializado em direito bancário: OAB ou indicações do Procon — solicitar orçamento com honorários de êxito (sem custo inicial) para causas de revisão contratual`,
-      `Monitorar prescrição: a ação revisional deve ser ajuizada no prazo de 5 anos — com base em ${dataRef}, acompanhe o prazo com atenção e não deixe para a última hora`,
+      `Monitorar prescrição: a ação revisional deve ser ajuizada no prazo de 5 anos — com base em ${contrato.dataContrato}, acompanhe o prazo com atenção e não deixe para a última hora`,
     ],
 
     alertasEspeciais: [
@@ -449,7 +449,7 @@ function fallbackAnalise(dados: RespostaAnalise): AnaliseIA {
       `consumidor.gov.br: empresa tem 10 dias corridos. ` +
       `JEC: sentença em 6-18 meses. ` +
       `Ação judicial ordinária: 2-4 anos. ` +
-      `Considerando o contrato de ${dataRef}, o prazo prescricional deve ser monitorado com atenção nos próximos anos.`,
+      `Considerando o contrato de ${contrato.dataContrato}, o prazo prescricional deve ser monitorado com atenção nos próximos anos.`,
 
     estimativaEconomia:
       `Com base na diferença comprovada de ${difBRL} (excesso de ${excs}% sobre a taxa BCB), ` +

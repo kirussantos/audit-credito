@@ -102,7 +102,7 @@ function rodape(doc: PDFKit.PDFDocument, id: string) {
 }
 
 /** Barra de seção compacta */
-function sec(doc: PDFKit.PDFDocument, titulo: string, cor = C.primary) {
+function sec(doc: PDFKit.PDFDocument, titulo: string, cor: string = C.primary) {
   if (doc.y >= BODY_BOT - 22) return;
   const y = doc.y;
   doc.rect(MARGIN, y, CW, S.sect).fill(cor);
@@ -180,7 +180,7 @@ function badge(doc: PDFKit.PDFDocument, texto: string, cor: string, h = 22) {
 }
 
 /** Item de lista com bullet colorido compacto */
-function item(doc: PDFKit.PDFDocument, texto: string, cor = C.accent, x = MARGIN, w = CW) {
+function item(doc: PDFKit.PDFDocument, texto: string, cor: string = C.accent, x = MARGIN, w = CW) {
   if (doc.y >= BODY_BOT - 12) return;
   const y = doc.y;
   doc.fillColor(cor).font("Helvetica-Bold").fontSize(F.body)
@@ -191,7 +191,7 @@ function item(doc: PDFKit.PDFDocument, texto: string, cor = C.accent, x = MARGIN
 }
 
 /** Item numerado compacto */
-function itemNum(doc: PDFKit.PDFDocument, n: number, texto: string, cor = C.accent, x = MARGIN, w = CW) {
+function itemNum(doc: PDFKit.PDFDocument, n: number, texto: string, cor: string = C.accent, x = MARGIN, w = CW) {
   if (doc.y >= BODY_BOT - 16) return;
   const y = doc.y;
   doc.rect(x, y, 16, 14).fill(cor);
